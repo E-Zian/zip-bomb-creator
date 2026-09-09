@@ -17,7 +17,7 @@ namespace {
             crc ^= byte;
             for (int i{}; i < 8; ++i) {
                 if (crc & 1) {
-                    constexpr uint32_t polynomial {0xEDB88320};
+                    constexpr uint32_t polynomial{0xEDB88320};
                     crc = (crc >> 1) ^ polynomial;
                 } else {
                     crc >>= 1;
@@ -29,6 +29,19 @@ namespace {
 
         return crc;
     }
+}
+
+LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : version_{config.version},
+                                                                            flags_{config.flags},
+                                                                            compressionMethod_{
+                                                                                config.compressionMethod
+                                                                            }, modTime_{config.modTime},
+                                                                            modDate_{config.modDate},
+                                                                            compressedSize_{config.compressedSize},
+                                                                            uncompressedSize_{config.uncompressedSize},
+                                                                            fileName_{config.fileName},
+                                                                            extraField_{config.extraField} {
+
 }
 
 std::vector<uint8_t> LocalFileHeader::serialize() {
@@ -58,4 +71,17 @@ std::vector<uint8_t> LocalFileHeader::serialize() {
     serialized.insert(serialized.end(), data_.begin(), data_.end());
 
     return serialized;
+}
+
+LocalFileHeader LocalFileHeader::createDummy(std::string fileName) {
+    FileHeaderConstructConfig config{};
+    config.version =static_cast<uint16_t>(Version::DEFLATE);
+    config.flags = 0;
+    config.compressionMethod = static_cast<uint16_t>(Compression::STORED);
+    config.modTime = 0;
+    config.modDate = 0;
+
+    config.compressedSize = 0;
+    config.uncompressedSize = 0;
+    config.fileName.assign(fileName.begin(), fileName.end());
 }

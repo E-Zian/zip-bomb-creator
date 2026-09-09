@@ -6,14 +6,22 @@
 #define ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 
 class LocalFileHeader {
-    public:
-    static constexpr uint32_t signature {0x04034b50};
-
-    std::vector<uint8_t> serialize();
+    struct FileHeaderConstructConfig{
+        uint16_t version;
+        uint16_t flags;
+        uint16_t compressionMethod;
+        uint16_t modTime;
+        uint16_t modDate;
+        uint32_t compressedSize;
+        uint32_t uncompressedSize;
+        std::vector<uint8_t> fileName;
+        std::vector<uint8_t> extraField;
+    };
 
     enum class Version :uint8_t{
         ORIGINAL = 10,
@@ -26,6 +34,17 @@ class LocalFileHeader {
         DEFLATE = 8,
         DEFLATE64 = 9,
     };
+
+    public:
+
+    explicit LocalFileHeader(const FileHeaderConstructConfig& config);
+
+    static constexpr uint32_t signature {0x04034b50};
+
+    std::vector<uint8_t> serialize();
+
+    static LocalFileHeader createDummy(std::string fileName);
+
 private:
     uint16_t version_{};
     uint16_t flags_{};

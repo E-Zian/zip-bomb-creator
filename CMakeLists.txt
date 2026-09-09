@@ -7,16 +7,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(sources
         src/main.cpp
         src/localFileHeader.cpp
+        src/Helper.cpp
+        src/CentralDirectory.cpp
+        src/Eocd.cpp
 
 
 )
 set(includes
         include/LocalFileHeader.h
-        src/Helper.cpp
         include/Helper.h
-        src/EOCD.cpp
         include/Eocd.h
-        src/CentralDirectory.cpp
         include/CentralDirectory.h
 
 )
