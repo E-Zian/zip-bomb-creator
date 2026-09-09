@@ -6,15 +6,23 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(sources
         src/main.cpp
+        src/localFileHeader.cpp
 
 
 )
 set(includes
+        include/LocalFileHeader.h
+        src/Helper.cpp
+        include/Helper.h
+        src/EOCD.cpp
+        include/Eocd.h
+        src/CentralDirectory.cpp
+        include/CentralDirectory.h
 
 )
 
 add_executable(zbc ${sources} ${includes})
 
-target_include_directories(zip_bomb_creator PUBLIC
+target_include_directories(zbc PUBLIC
         include
 )
