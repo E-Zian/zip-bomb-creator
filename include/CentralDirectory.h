@@ -8,10 +8,34 @@
 
 #include <cstdint>
 #include <vector>
+#include "LocalFileHeader.h"
 
 class CentralDirectoryHeader {
 public:
-    static constexpr uint32_t kSignature{0x02014b50};
+    static constexpr uint32_t signature{0x02014b50};
+
+    enum class Host : uint8_t {
+        DOS = 0,
+        WINDOWS = 0,
+        UNIX = 3
+    };
+    
+    struct CentralDirectoryConstructConfig {
+        const LocalFileHeader& localHeader;
+        uint16_t versionMadeBy;
+        std::vector<uint8_t> extraField;
+        std::vector<uint8_t> fileComment;
+        uint16_t diskNumberStart;
+        uint16_t internalAttributes;
+        uint32_t externalAttributes;
+    };
+
+    static CentralDirectoryHeader createBasic(const LocalFileHeader& localHeader);
+
+    explicit CentralDirectoryHeader(const CentralDirectoryConstructConfig& config);
+
+    std::vector<uint8_t> serialize();
+
 private:
     uint16_t versionMadeBy_{};
     uint16_t versionNeeded_{};

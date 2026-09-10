@@ -11,7 +11,8 @@
 
 
 class LocalFileHeader {
-    struct FileHeaderConstructConfig{
+public:
+    struct FileHeaderConstructConfig {
         uint16_t version;
         uint16_t flags;
         uint16_t compressionMethod;
@@ -21,9 +22,10 @@ class LocalFileHeader {
         uint32_t uncompressedSize;
         std::vector<uint8_t> fileName;
         std::vector<uint8_t> extraField;
+        std::vector<uint8_t> data;
     };
 
-    enum class Version :uint8_t{
+    enum class Version :uint8_t {
         ORIGINAL = 10,
         DEFLATE = 20,
         ZIP64 = 45
@@ -35,15 +37,54 @@ class LocalFileHeader {
         DEFLATE64 = 9,
     };
 
-    public:
 
-    explicit LocalFileHeader(const FileHeaderConstructConfig& config);
+    explicit LocalFileHeader(const FileHeaderConstructConfig &config);
 
-    static constexpr uint32_t signature {0x04034b50};
+    static constexpr uint32_t signature{0x04034b50};
 
     std::vector<uint8_t> serialize();
 
-    static LocalFileHeader createDummy(std::string fileName);
+    static LocalFileHeader createStored(std::string fileName, std::string data);
+
+    [[nodiscard]] uint16_t getVersion() const {
+        return version_;
+    };
+
+    [[nodiscard]] uint16_t getFlags() const {
+        return flags_;
+    }
+
+    [[nodiscard]] uint16_t getCompressionMethod() const {
+        return compressionMethod_;
+    }
+
+    [[nodiscard]] uint16_t getModTime() const {
+        return modTime_;
+    }
+
+    [[nodiscard]] uint16_t getModDate() const {
+        return modDate_;
+    }
+
+    [[nodiscard]] uint32_t getCrc32() const {
+        return crc32_;
+    }
+
+    [[nodiscard]] uint32_t getCompressedSize() const {
+        return compressedSize_;
+    }
+
+    [[nodiscard]] uint32_t getUncompressedSize() const {
+        return uncompressedSize_;
+    }
+
+    [[nodiscard]] std::vector<uint8_t> getFileName() const {
+        return fileName_;
+    }
+
+    [[nodiscard]] std::vector<uint8_t> getExtraField() const {
+        return extraField_;
+    }
 
 private:
     uint16_t version_{};
@@ -51,7 +92,6 @@ private:
     uint16_t compressionMethod_{};
     uint16_t modTime_{};
     uint16_t modDate_{};
-    // Checksum
     uint32_t crc32_{};
     uint32_t compressedSize_{};
     uint32_t uncompressedSize_{};

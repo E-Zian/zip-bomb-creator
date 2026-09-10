@@ -7,11 +7,14 @@
 #define ZIP_BOMB_CREATOR_HELPER_H
 
 #include <cstdint>
+#include <span>
 #include <vector>
 
 namespace helper {
     void appendBytes16Small(std::vector<uint8_t> &buffer, uint16_t data);
     void appendBytes32Small(std::vector<uint8_t> &buffer, uint32_t data);
+
+    void displayBytes(std::span<const uint8_t> buffer);
 }
 
 
