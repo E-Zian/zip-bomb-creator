@@ -1,18 +1,31 @@
+#include <fstream>
+
 #include "LocalFileHeader.h"
 #include "Helper.h"
 #include "CentralDirectory.h"
+#include "ZipFile.h"
 #include <iostream>
 
+namespace {
+    bool writeFile(const std::string& fileName, const std::span<uint8_t> data) {
+        std::ofstream out(fileName, std::ios::binary);
+        out.write(reinterpret_cast<const char*>(data.data()), static_cast<long>(data.size()));
+
+        return out.good();
+    }
+}
 int main() {
     LocalFileHeader lfh { LocalFileHeader::createStored("a.txt","Hello")};
-    CentralDirectoryHeader cdh{CentralDirectoryHeader::createBasic(lfh)};
 
-    auto lfhBuffer = lfh.serialize();
-    helper::displayBytes(lfhBuffer);
-
-    std::cout << "\n\n" << "Central Directory Header :\n" << std::endl;
-    auto cdhBuffer = cdh.serialize();
-    helper::displayBytes(cdhBuffer);
-
+    ZipFile zipFile;
+    zipFile.addFile(std::move(lfh));
+    auto file {zipFile.serialize()};
+    if (file) {
+        if (writeFile("test.zip",*file)) {
+            std::cout << "zip file written\n";
+        }else {
+            std::cout << "zip file failed write\n";
+        }
+    }
 
 }

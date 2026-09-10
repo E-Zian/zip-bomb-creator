@@ -10,7 +10,7 @@ set(sources
         src/Helper.cpp
         src/CentralDirectory.cpp
         src/Eocd.cpp
-
+        src/ZipFile.cpp
 
 )
 set(includes
@@ -18,6 +18,7 @@ set(includes
         include/Helper.h
         include/Eocd.h
         include/CentralDirectory.h
+        include/ZipFile.h
 
 )
 

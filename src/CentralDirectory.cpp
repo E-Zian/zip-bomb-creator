@@ -61,3 +61,7 @@ std::vector<uint8_t> CentralDirectoryHeader::serialize() {
 
     return serialized;
 }
+
+size_t CentralDirectoryHeader::size() const {
+    return minSize + fileName_.size() + extraField_.size() + fileComment_.size();
+}

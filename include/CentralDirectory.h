@@ -14,14 +14,16 @@ class CentralDirectoryHeader {
 public:
     static constexpr uint32_t signature{0x02014b50};
 
+    static constexpr size_t minSize{46};
+
     enum class Host : uint8_t {
         DOS = 0,
         WINDOWS = 0,
         UNIX = 3
     };
-    
+
     struct CentralDirectoryConstructConfig {
-        const LocalFileHeader& localHeader;
+        const LocalFileHeader &localHeader;
         uint16_t versionMadeBy;
         std::vector<uint8_t> extraField;
         std::vector<uint8_t> fileComment;
@@ -30,11 +32,17 @@ public:
         uint32_t externalAttributes;
     };
 
-    static CentralDirectoryHeader createBasic(const LocalFileHeader& localHeader);
+    static CentralDirectoryHeader createBasic(const LocalFileHeader &localHeader);
 
-    explicit CentralDirectoryHeader(const CentralDirectoryConstructConfig& config);
+    explicit CentralDirectoryHeader(const CentralDirectoryConstructConfig &config);
 
     std::vector<uint8_t> serialize();
+
+    [[nodiscard]] size_t size() const;
+
+    void setLocalHeaderOffset(const uint32_t offset) {
+        localHeaderOffset_ = offset;
+    }
 
 private:
     uint16_t versionMadeBy_{};
