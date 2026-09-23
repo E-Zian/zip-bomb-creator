@@ -1,9 +1,9 @@
 #include <fstream>
 
-#include "LocalFileHeader.h"
+#include "../include/zip_file_construction/LocalFileHeader.h"
 #include "Helper.h"
-#include "CentralDirectory.h"
-#include "ZipFile.h"
+#include "../include/zip_file_construction/CentralDirectory.h"
+#include "zip_file_construction/ZipFile.h"
 #include <iostream>
 
 namespace {

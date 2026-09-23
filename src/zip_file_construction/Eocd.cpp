@@ -2,7 +2,7 @@
 // Created by LeeEeZian on 9/9/2026.
 //
 
-#include "Eocd.h"
+#include "../../include/zip_file_construction/Eocd.h"
 #include "Helper.h"
 
 Eocd::Eocd(const EocdConstructConfig &config) : entriesOnThisDisk_{static_cast<uint16_t>(config.entries.size())},

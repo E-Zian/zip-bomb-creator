@@ -2,7 +2,7 @@
 // Created by LeeEeZian on 10/9/2026.
 //
 
-#include "ZipFile.h"
+#include "../../include/zip_file_construction/ZipFile.h"
 
 void ZipFile::addFile(LocalFileHeader &&fileHeader) {
     centralDirectories_.push_back(CentralDirectoryHeader::createBasic(fileHeader));
