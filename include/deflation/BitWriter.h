@@ -13,7 +13,7 @@ class BitWriter {
 
     void add(uint32_t value,int numOfBits);
 
-    std::vector<uint8_t> dump();
+    std::vector<uint8_t> release();
 
 private:
     std::vector<uint8_t> bits_{};

@@ -29,7 +29,7 @@ void BitWriter::add(uint32_t value, int numOfBits) {
     }
 }
 
-std::vector<uint8_t> BitWriter::dump() {
+std::vector<uint8_t> BitWriter::release() {
     if (bitCount_ > 0) {
     bits_.push_back(bitBuffer_);
         bitBuffer_ = 0;
