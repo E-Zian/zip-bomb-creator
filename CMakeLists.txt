@@ -23,6 +23,8 @@ set(includes
         src/deflation/HuffmanTree.cpp
         include/deflation/BitWriter.h
         src/deflation/BitWriter.cpp
+        include/deflation/HuffmanTable.h
+        src/deflation/HuffmanTable.cpp
 
 )
 
