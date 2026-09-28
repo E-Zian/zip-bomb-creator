@@ -15,7 +15,7 @@ void BitWriter::add(uint32_t value, int numOfBits) {
         const int remainingBits { 8 - bitCount_};
         const int take { std::min(numOfBits, remainingBits)};
 
-        bitBuffer_ |= (value & (1u << take)-1) << bitCount_;
+        bitBuffer_ |= (value & ((1u << take) - 1)) << bitCount_;
         value >>= take;
         numOfBits -= take;
 

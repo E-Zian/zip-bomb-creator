@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "../include/zip_file_construction/CentralDirectory.h"
 #include "zip_file_construction/ZipFile.h"
+#include "deflation/BitWriter.h"
 #include <iostream>
 
 namespace {
@@ -14,20 +15,24 @@ namespace {
         return out.good();
     }
 }
+
 int main() {
-    LocalFileHeader lfh { LocalFileHeader::createStored("a.txt","Hello")};
+    BitWriter bitWriterTest;
+    bitWriterTest.add(0b11,  2);
+    bitWriterTest.add(0b101, 3);
+    helper::displayBytes(bitWriterTest.release());
 
-    ZipFile zipFile;
-    zipFile.addFile(std::move(lfh));
-    auto file {zipFile.serialize()};
-    if (file) {
-        if (writeFile("test.zip",*file)) {
-            std::cout << "zip file written\n";
-        }else {
-            std::cout << "zip file failed write\n";
-        }
-    }
-
-
+    // LocalFileHeader lfh { LocalFileHeader::createStored("a.txt","Hello")};
+    //
+    // ZipFile zipFile;
+    // zipFile.addFile(std::move(lfh));
+    // auto file {zipFile.serialize()};
+    // if (file) {
+    //     if (writeFile("test.zip",*file)) {
+    //         std::cout << "zip file written\n";
+    //     }else {
+    //         std::cout << "zip file failed write\n";
+    //     }
+    // }
 
 }
