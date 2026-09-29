@@ -6,12 +6,19 @@
 #define ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
 
 class LocalFileHeader {
 public:
+    struct DeflateResult {
+        std::vector<uint8_t> data;
+        uint64_t uncompressedSize;
+        uint32_t crc32;
+    };
+
     struct FileHeaderConstructConfig {
         uint16_t version;
         uint16_t flags;
@@ -37,6 +44,7 @@ public:
         DEFLATE64 = 9,
     };
 
+    static  uint32_t calculateCRC32(std::span<const uint8_t> data);
 
     explicit LocalFileHeader(const FileHeaderConstructConfig &config);
 
@@ -45,6 +53,8 @@ public:
     std::vector<uint8_t> serialize();
 
     static LocalFileHeader createStored(std::string fileName, std::string data);
+
+    static LocalFileHeader createBomb(std::string fileName,size_t size);
 
     [[nodiscard]] uint16_t getVersion() const {
         return version_;

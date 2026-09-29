@@ -2,33 +2,31 @@
 // Created by LeeEeZian on 9/9/2026.
 //
 #include "../../include/zip_file_construction/LocalFileHeader.h"
-
+#include "Helper.h"
+#include "deflation/BitWriter.h"
 #include <span>
 
-#include "Helper.h"
 
-namespace {
-    uint32_t calculateCRC32(const std::span<const uint8_t> data) {
-        constexpr uint32_t max4Byte{0xFFFFFFFF};
+uint32_t LocalFileHeader::calculateCRC32(const std::span<const uint8_t> data) {
+    constexpr uint32_t max4Byte{0xFFFFFFFF};
 
-        uint32_t crc{max4Byte};
+    uint32_t crc{max4Byte};
 
-        for (const uint8_t byte: data) {
-            crc ^= byte;
-            for (int i{}; i < 8; ++i) {
-                if (crc & 1) {
-                    constexpr uint32_t polynomial{0xEDB88320};
-                    crc = (crc >> 1) ^ polynomial;
-                } else {
-                    crc >>= 1;
-                }
+    for (const uint8_t byte: data) {
+        crc ^= byte;
+        for (int i{}; i < 8; ++i) {
+            if (crc & 1) {
+                constexpr uint32_t polynomial{0xEDB88320};
+                crc = (crc >> 1) ^ polynomial;
+            } else {
+                crc >>= 1;
             }
         }
-
-        crc = crc ^ max4Byte;
-
-        return crc;
     }
+
+    crc = crc ^ max4Byte;
+
+    return crc;
 }
 
 LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : version_{config.version},
@@ -88,6 +86,26 @@ LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string 
     config.extraField = {};
 
     config.data.assign(data.begin(), data.end());
+
+    return LocalFileHeader{config};
+}
+
+LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t size) {
+    DeflateResult bomb { HuffmanTable::createEncodedFixedBomb(size)};
+    BitWriter writer{};
+    FileHeaderConstructConfig config{};
+    config.version = static_cast<uint16_t>(Version::DEFLATE);
+    config.flags = 0;
+    config.compressionMethod = static_cast<uint16_t>(Compression::DEFLATE);
+    config.modTime = 0;
+    config.modDate = 0;
+
+    config.compressedSize = static_cast<uint32_t>(bomb.size());
+    config.uncompressedSize = static_cast<uint32_t>(1+repeatedData );
+    config.fileName.assign(fileName.begin(), fileName.end());
+    config.extraField = {};
+
+    config.data.assign(bomb.begin(), bomb.end());
 
     return LocalFileHeader{config};
 }

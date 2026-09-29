@@ -25,6 +25,8 @@ set(includes
         src/deflation/BitWriter.cpp
         include/deflation/HuffmanTable.h
         src/deflation/HuffmanTable.cpp
+        include/deflation/Lz77.h
+        src/deflation/Lz77.cpp
 
 )
 

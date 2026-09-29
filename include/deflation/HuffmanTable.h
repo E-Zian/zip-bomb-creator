@@ -8,6 +8,12 @@
 #include <span>
 #include <vector>
 
+struct DeflateResult {
+    std::vector<uint8_t> data;
+    uint64_t uncompressedSize;
+    uint32_t crc32;
+};
+
 struct HuffmanCode {
     uint16_t code;
     uint8_t length;
@@ -15,7 +21,6 @@ struct HuffmanCode {
 
 class HuffmanTable {
 public:
-
     enum BFINAL {
         NO = 0b0,
         YES = 0b1,
@@ -28,9 +33,14 @@ public:
     };
 
 
-    static HuffmanCode fixedTable(int symbol);
+    static HuffmanCode fixedSymbolTable(int symbol);
 
     static std::vector<uint8_t> encodeFixed(std::span<uint8_t> data);
+
+    static DeflateResult createEncodedFixedBomb(size_t size);
+
+    static HuffmanCode fixedDistanceTable(int symbol);
+
 private:
 };
 #endif //ZIP_BOMB_CREATOR_HUFFMANTABLE_H
