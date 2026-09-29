@@ -4,7 +4,7 @@
 
 #ifndef ZIP_BOMB_CREATOR_BITWRITER_H
 #define ZIP_BOMB_CREATOR_BITWRITER_H
-
+#include "HuffmanTable.h"
 #include <cstdint>
 #include <vector>
 class BitWriter {
@@ -12,6 +12,10 @@ class BitWriter {
     BitWriter() = default;
 
     void add(uint32_t value,int numOfBits);
+
+    void add(const HuffmanCode code) {
+        add(code.code,code.length);
+    };
 
     std::vector<uint8_t> release();
 

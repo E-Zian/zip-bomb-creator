@@ -5,6 +5,7 @@
 #include "../include/zip_file_construction/CentralDirectory.h"
 #include "zip_file_construction/ZipFile.h"
 #include "deflation/BitWriter.h"
+#include "deflation/HuffmanTable.h"
 #include <iostream>
 
 namespace {
@@ -17,11 +18,10 @@ namespace {
 }
 
 int main() {
-    BitWriter bitWriterTest;
-    bitWriterTest.add(0b11,  2);
-    bitWriterTest.add(0b101, 3);
-    helper::displayBytes(bitWriterTest.release());
-
+    std::string test{"a"};
+    std::vector<uint8_t> data(test.begin(), test.end());
+    auto encoded {HuffmanTable::encodeFixed(data)};
+    helper::displayBytes(encoded);
     // LocalFileHeader lfh { LocalFileHeader::createStored("a.txt","Hello")};
     //
     // ZipFile zipFile;
