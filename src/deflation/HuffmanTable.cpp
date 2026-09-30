@@ -51,34 +51,7 @@ std::vector<uint8_t> HuffmanTable::encodeFixed(const std::span<uint8_t> data) {
     return writer.release();
 }
 
-DeflateResult HuffmanTable::createEncodedFixedBomb(const size_t size) {
-    using namespace lz77;
-    BitWriter writer;
-    writer.add(BFINAL::YES, 1);
-    writer.add(BTYPE::FIXED_HUFFMAN, 2);
 
-    auto [code, length] {HuffmanTable::fixedSymbolTable('a')};
-    writer.add(code, length);
-
-    const MatchCode lengthCode{lz77::getLengthCode(static_cast<int>(lz77::LengthValue::MAX))};
-    const MatchCode distanceCode{lz77::getDistanceCode(1)};
-
-    for (size_t i {}; i < 4 * size; ++i) {
-        auto [lCode, lLength] {HuffmanTable::fixedSymbolTable(lengthCode.symbol)};
-        writer.add(lCode, lLength);
-        writer.add(lengthCode.extraValue, lengthCode.extraBit);
-
-        auto [dCode, dLength] {HuffmanTable::fixedDistanceTable(distanceCode.symbol)};
-        writer.add(dCode, dLength);
-        writer.add(distanceCode.extraValue, distanceCode.extraBit);
-    }
-
-    auto [endCode, endLength] {HuffmanTable::fixedSymbolTable(256)};
-    writer.add(endCode, endLength);
-    const size_t repeatedData{4*size*258};
-
-    return {writer.release(),1+repeatedData,LocalFileHeader::calculateCRC32()};
-}
 
 HuffmanCode HuffmanTable::fixedDistanceTable(const int symbol) {
     return { .code = reverseBits(symbol, 5), .length = 5 };

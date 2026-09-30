@@ -5,7 +5,9 @@
 #ifndef ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 #define ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 
+#include "Crc32.h"
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -13,12 +15,6 @@
 
 class LocalFileHeader {
 public:
-    struct DeflateResult {
-        std::vector<uint8_t> data;
-        uint64_t uncompressedSize;
-        uint32_t crc32;
-    };
-
     struct FileHeaderConstructConfig {
         uint16_t version;
         uint16_t flags;
@@ -30,6 +26,7 @@ public:
         std::vector<uint8_t> fileName;
         std::vector<uint8_t> extraField;
         std::vector<uint8_t> data;
+        std::optional<uint32_t> crc32;
     };
 
     enum class Version :uint8_t {
@@ -44,7 +41,7 @@ public:
         DEFLATE64 = 9,
     };
 
-    static  uint32_t calculateCRC32(std::span<const uint8_t> data);
+    // static  uint32_t calculateCRC32(std::span<const uint8_t> data);
 
     explicit LocalFileHeader(const FileHeaderConstructConfig &config);
 

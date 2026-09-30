@@ -18,21 +18,18 @@ namespace {
 }
 
 int main() {
-    std::string test{"a"};
-    std::vector<uint8_t> data(test.begin(), test.end());
-    auto encoded {HuffmanTable::encodeFixed(data)};
-    helper::displayBytes(encoded);
-    // LocalFileHeader lfh { LocalFileHeader::createStored("a.txt","Hello")};
-    //
-    // ZipFile zipFile;
-    // zipFile.addFile(std::move(lfh));
-    // auto file {zipFile.serialize()};
-    // if (file) {
-    //     if (writeFile("test.zip",*file)) {
-    //         std::cout << "zip file written\n";
-    //     }else {
-    //         std::cout << "zip file failed write\n";
-    //     }
-    // }
+
+    LocalFileHeader lfh { LocalFileHeader::createBomb("a.txt",10000)};
+
+    ZipFile zipFile;
+    zipFile.addFile(std::move(lfh));
+    auto file {zipFile.serialize()};
+    if (file) {
+        if (writeFile("test.zip",*file)) {
+            std::cout << "zip file written\n";
+        }else {
+            std::cout << "zip file failed write\n";
+        }
+    }
 
 }

@@ -11,6 +11,11 @@ set(sources
         src/zip_file_construction/CentralDirectory.cpp
         src/zip_file_construction/Eocd.cpp
         src/zip_file_construction/ZipFile.cpp
+        src/zip_file_construction/Crc32.cpp
+        src/deflation/HuffmanTable.cpp
+        src/factory/PayloadFactory.cpp
+        src/deflation/Lz77.cpp
+        src/deflation/HuffmanTree.cpp
 
 )
 set(includes
@@ -20,13 +25,12 @@ set(includes
         include/zip_file_construction/CentralDirectory.h
         include/zip_file_construction/ZipFile.h
         include/deflation/HuffmanTree.h
-        src/deflation/HuffmanTree.cpp
         include/deflation/BitWriter.h
         src/deflation/BitWriter.cpp
         include/deflation/HuffmanTable.h
-        src/deflation/HuffmanTable.cpp
         include/deflation/Lz77.h
-        src/deflation/Lz77.cpp
+        include/factory/PayloadFactory.h
+        include/zip_file_construction/Crc32.h
 
 )
 

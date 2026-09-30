@@ -37,8 +37,6 @@ public:
 
     static std::vector<uint8_t> encodeFixed(std::span<uint8_t> data);
 
-    static DeflateResult createEncodedFixedBomb(size_t size);
-
     static HuffmanCode fixedDistanceTable(int symbol);
 
 private:
