@@ -7,28 +7,6 @@
 #include "deflation/BitWriter.h"
 #include <span>
 
-// uint32_t LocalFileHeader::calculateCRC32(const std::span<const uint8_t> data) {
-//     constexpr uint32_t max4Byte{0xFFFFFFFF};
-//
-//     uint32_t crc{max4Byte};
-//
-//     for (const uint8_t byte: data) {
-//         crc ^= byte;
-//         for (int i{}; i < 8; ++i) {
-//             if (crc & 1) {
-//                 constexpr uint32_t polynomial{0xEDB88320};
-//                 crc = (crc >> 1) ^ polynomial;
-//             } else {
-//                 crc >>= 1;
-//             }
-//         }
-//     }
-//
-//     crc ^= max4Byte;
-//
-//     return crc;
-// }
-
 LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : version_{config.version},
                                                                             flags_{config.flags},
                                                                             compressionMethod_{
