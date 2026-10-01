@@ -11,10 +11,13 @@
 #include "LocalFileHeader.h"
 #include "Eocd.h"
 
+#include <utility>
 #include <vector>
 
 class ZipFile {
     public:
+    explicit ZipFile(std::string  name):filename_{std::move(name)}{};
+    std::string filename_;
     void addFile(LocalFileHeader&& fileHeader);
 
     [[nodiscard]] std::optional<std::vector<uint8_t>>  serialize() ;

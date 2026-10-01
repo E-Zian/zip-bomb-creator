@@ -9,9 +9,9 @@
 #include <iostream>
 
 namespace {
-    bool writeFile(const std::string& fileName, const std::span<uint8_t> data) {
+    bool writeFile(const std::string &fileName, const std::span<uint8_t> data) {
         std::ofstream out(fileName, std::ios::binary);
-        out.write(reinterpret_cast<const char*>(data.data()), static_cast<long>(data.size()));
+        out.write(reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
 
         return out.good();
     }
@@ -20,24 +20,26 @@ namespace {
 namespace {
     enum class ByteSize:size_t {
         MB = 1024,
-        GB = 1024*1024,
-        TB = 1024*1024*1024,
+        GB = 1024 * 1024,
+        TB = 1024 * 1024 * 1024,
     };
 }
 
 int main() {
+    try {
+        LocalFileHeader lfh{LocalFileHeader::createBomb("a.ppt", static_cast<size_t>(ByteSize::MB) * 1000)};
 
-    LocalFileHeader lfh { LocalFileHeader::createBomb("a.txt",static_cast<size_t>(ByteSize::MB)*1000) };
-
-    ZipFile zipFile;
-    zipFile.addFile(std::move(lfh));
-    auto file {zipFile.serialize()};
-    if (file) {
-        if (writeFile("test.zip",*file)) {
-            std::cout << "zip file written\n";
-        }else {
-            std::cout << "zip file failed write\n";
+        ZipFile zipFile{"Test.zip"};
+        zipFile.addFile(std::move(lfh));
+        auto file{zipFile.serialize()};
+        if (file) {
+            if (writeFile(zipFile.filename_, *file)) {
+                std::cout << "zip file written\n";
+            } else {
+                std::cout << "zip file failed write\n";
+            }
         }
+    } catch (std::exception &e) {
+        std::cout << "exception: " << e.what() << std::endl;
     }
-
 }
