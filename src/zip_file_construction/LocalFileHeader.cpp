@@ -26,7 +26,7 @@ LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : vers
         for (const uint8_t byte : data_) {
             crc.update(byte);
         }
-        crc.finalize();
+        crc.computeCrc32();
         crc32_ = crc.getCrc32();
     }
 }

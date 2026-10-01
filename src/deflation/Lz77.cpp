@@ -2,7 +2,7 @@
 // Created by LeeEeZian on 29/9/2026.
 //
 
-#include "deflation\Lz77.h""
+#include "deflation\Lz77.h"
 
 lz77::MatchCode lz77::getLengthCode(const int length){
     constexpr std::array base {
