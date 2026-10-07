@@ -28,7 +28,7 @@ void Crc32::computeCrc32() {
 }
 
 Crc32 &Crc32::combine(const Crc32 &b) {
-    crc32Value = advanceValue(getCrc32(), b.length) ^ b.getCrc32();
+    crc32Value = advanceValue(getCrc32(), 8 * b.length) ^ b.getCrc32();
 
     length += b.length;
 
@@ -36,7 +36,7 @@ Crc32 &Crc32::combine(const Crc32 &b) {
 }
 
 namespace {
-    uint32_t matrixDotVector(const std::array<uint32_t,32> &mat, uint32_t vec) {
+    uint32_t matrixDotVector(const std::array<uint32_t, 32> &mat, uint32_t vec) {
         uint32_t sum{};
         for (int i{}; vec; vec >>= 1, ++i) {
             if (vec & 1) {
@@ -46,34 +46,44 @@ namespace {
         return sum;
     }
 
-    void squareMatrix(std::array<uint32_t,32> &mat) {
+    void squareMatrix(std::array<uint32_t, 32> &mat) {
         const auto tempMatrix{mat};
-        for (int i{}; i<32; ++i) {
-            mat[i] = matrixDotVector(tempMatrix, tempMatrix[i]);
+        for (int i{}; i < 32; ++i) {
+            mat[i] = matrixDotVector(tempMatrix, mat[i]);
         }
-    }}
-
-// advance `crc` forward by `bytes` bytes, in O(log bytes)
-uint32_t Crc32::advanceValue(uint32_t crc, size_t bytes) const {
-    if (bytes == 0) return crc;
-    size_t bits { bytes * 8};
-    uint32_t even[32], odd[32];
-    odd[0] = polynomial; // operator for 1 zero bit
-    uint32_t row = 1;
-    for (int n = 1; n < 32; ++n) {
-        odd[n] = row;
-        row <<= 1;
     }
-    squareMatrix(even, odd); // 2 bits
-    squareMatrix(odd, even); // 4 bits
-    do {
-        squareMatrix(even, odd); // 8 bits (1 byte) on first pass, then doubling
-        if (bits & 1) crc = matrixDotVector(even, crc);
+
+    void matrixDotMatrix(std::array<uint32_t, 32> &mat1, const std::array<uint32_t, 32> &mat2) {
+        const auto tempMatrix{mat1};
+
+        for (int i{}; i < 32; ++i) {
+            mat1[i] = matrixDotVector(mat2, tempMatrix[i]);
+        }
+    }
+}
+
+
+uint32_t Crc32::advanceValue(uint32_t crc, size_t bits) const {
+    if (bits == 0) return crc;
+    std::array<uint32_t, 32> advanceMatrix{};
+
+    advanceMatrix[0] = polynomial;
+
+    // Set as the advance function matrix
+    for (size_t i{1}; i < advanceMatrix.size(); ++i) {
+        advanceMatrix[i] = 1u << (i-1);
+    }
+
+    while (bits > 0) {
+        if (bits & 1) {
+            crc = matrixDotVector(advanceMatrix, crc);
+        }
         bits >>= 1;
-        if (bits == 0) break;
-        squareMatrix(odd, even);
-        if (bits & 1) crc = matrixDotVector(odd, crc);
-        bits >>= 1;
-    } while (bits);
+
+        if (bits) {
+            squareMatrix(advanceMatrix);
+        }
+    }
+
     return crc;
 }

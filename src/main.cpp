@@ -27,7 +27,7 @@ namespace {
 
 int main() {
     try {
-        LocalFileHeader lfh{LocalFileHeader::createBomb("a.png", static_cast<size_t>(ByteSize::MB) * 1000)};
+        LocalFileHeader lfh{LocalFileHeader::createBomb("a.txt", static_cast<size_t>(ByteSize::MB) * 1000)};
 
         ZipFile zipFile{"Test.zip"};
         zipFile.addFile(std::move(lfh));

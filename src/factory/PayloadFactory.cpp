@@ -52,10 +52,7 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
         block.combine(block);
         remaining >>= 1;
     }
-
-    for (int i{}; i < uncompressedSize; ++i) {
-    }
-    BombCrc32.computeCrc32();
+    
     const auto end{std::chrono::steady_clock::now()};
     const auto elapsed{std::chrono::duration_cast<std::chrono::milliseconds>(end - start)};
 
