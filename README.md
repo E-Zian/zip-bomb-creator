@@ -5,6 +5,8 @@ archive, the DEFLATE stream, and the CRC-32 is produced by hand. It builds a sma
 compressed file that expands into a very large one, as an exercise in understanding
 the ZIP and DEFLATE formats end to end.
 
+<img width="541" height="142" alt="image" src="https://github.com/user-attachments/assets/8f1b45c2-db69-4efa-9c5e-6db82da4324d" />
+
 > **Educational use only.** This is a learning project, meant to be built and tested
 > on your own machine. Don't distribute the output or point it at anyone else's system.
 
@@ -33,7 +35,7 @@ The archive wraps this in hand-built ZIP records.
 - **Dynamic Huffman tables** — build frequency-optimal codes per block rather than the
   fixed table, to improve the compression ratio of the bomb.
 - **Terminal User Interface** — provide a better user interface for interacting with the programme.
-
+- **Update eocd to zip64 eocd** — to support a larger sized bomb.
 ## Build & run
 
 Built with CMake (Ninja). From the project root:
