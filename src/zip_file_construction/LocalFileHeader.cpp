@@ -5,6 +5,7 @@
 #include "factory/PayloadFactory.h"
 #include "Helper.h"
 #include "deflation/BitWriter.h"
+#include "zip_file_construction/Zip64.h"
 #include <span>
 
 LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : version_{config.version},
@@ -23,7 +24,7 @@ LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : vers
         crc32_ = config.crc32.value();
     } else {
         Crc32 crc{};
-        for (const uint8_t byte : data_) {
+        for (const uint8_t byte: data_) {
             crc.update(byte);
         }
         crc.computeCrc32();
@@ -45,13 +46,29 @@ std::vector<uint8_t> LocalFileHeader::serialize() {
 
     appendBytes32Small(serialized, crc32_);
 
-    appendBytes32Small(serialized, compressedSize_);
-    appendBytes32Small(serialized, uncompressedSize_);
+    const bool useZip64 = (uncompressedSize_ >= 0xFFFFFFFFULL || compressedSize_ >= 0xFFFFFFFFULL);
+    if (useZip64) {
+        appendBytes32Small(serialized, 0xFFFFFFFF);
+        appendBytes32Small(serialized, 0xFFFFFFFF);
+
+        extraField_.id = Zip64ExtraBlock::ZIP64_EXTENDED_INFO;
+        appendBytes64Small(extraField_.data, uncompressedSize_);
+        appendBytes64Small(extraField_.data, compressedSize_);
+    } else {
+        appendBytes32Small(serialized, compressedSize_);
+        appendBytes32Small(serialized, uncompressedSize_);
+    }
+
+
     appendBytes16Small(serialized, static_cast<uint16_t>(fileName_.size()));
     appendBytes16Small(serialized, static_cast<uint16_t>(extraField_.size()));
 
     serialized.insert(serialized.end(), fileName_.begin(), fileName_.end());
-    serialized.insert(serialized.end(), extraField_.begin(), extraField_.end());
+
+    if (useZip64) {
+        std::vector<uint8_t> serializedExtraField{extraField_.serialize()};
+        serialized.insert(serialized.end(), serializedExtraField.begin(), serializedExtraField.end());
+    }
 
     serialized.insert(serialized.end(), data_.begin(), data_.end());
 
@@ -79,14 +96,18 @@ LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string 
 LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t size) {
     auto [data, uncompressedSize, crc32]{payloadFactory::createFixedBombPayload(size)};
     FileHeaderConstructConfig config{};
-    config.version = static_cast<uint16_t>(Version::DEFLATE);
+    if (uncompressedSize >= 0xFFFFFFFFULL || data.size() >= 0xFFFFFFFFULL) {
+        config.version = static_cast<uint16_t>(Version::ZIP64);
+    } else {
+        config.version = static_cast<uint16_t>(Version::DEFLATE);
+    }
     config.flags = 0;
     config.compressionMethod = static_cast<uint16_t>(Compression::DEFLATE);
     config.modTime = 0;
     config.modDate = 0;
 
-    config.compressedSize = static_cast<uint32_t>(data.size());
-    config.uncompressedSize = static_cast<uint32_t>(uncompressedSize);
+    config.compressedSize = data.size();
+    config.uncompressedSize = uncompressedSize;
     config.fileName.assign(fileName.begin(), fileName.end());
     config.extraField = {};
 

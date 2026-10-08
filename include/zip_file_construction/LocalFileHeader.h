@@ -6,6 +6,7 @@
 #define ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 
 #include "Crc32.h"
+#include "zip_file_construction/Zip64.h"
 #include <cstdint>
 #include <optional>
 #include <span>
@@ -21,10 +22,10 @@ public:
         uint16_t compressionMethod;
         uint16_t modTime;
         uint16_t modDate;
-        uint32_t compressedSize;
-        uint32_t uncompressedSize;
+        uint64_t compressedSize;
+        uint64_t uncompressedSize;
         std::vector<uint8_t> fileName;
-        std::vector<uint8_t> extraField;
+        Zip64ExtraBlock extraField;
         std::vector<uint8_t> data;
         std::optional<uint32_t> crc32;
     };
@@ -77,11 +78,11 @@ public:
         return crc32_;
     }
 
-    [[nodiscard]] uint32_t getCompressedSize() const {
+    [[nodiscard]] uint64_t getCompressedSize() const {
         return compressedSize_;
     }
 
-    [[nodiscard]] uint32_t getUncompressedSize() const {
+    [[nodiscard]] uint64_t getUncompressedSize() const {
         return uncompressedSize_;
     }
 
@@ -90,7 +91,7 @@ public:
     }
 
     [[nodiscard]] std::vector<uint8_t> getExtraField() const {
-        return extraField_;
+        return extraField_.data;
     }
 
 private:
@@ -100,11 +101,11 @@ private:
     uint16_t modTime_{};
     uint16_t modDate_{};
     uint32_t crc32_{};
-    uint32_t compressedSize_{};
-    uint32_t uncompressedSize_{};
+    uint64_t compressedSize_{};
+    uint64_t uncompressedSize_{};
 
     std::vector<uint8_t> fileName_{};
-    std::vector<uint8_t> extraField_{};
+    Zip64ExtraBlock extraField_{};
 
     std::vector<uint8_t> data_{};
 };

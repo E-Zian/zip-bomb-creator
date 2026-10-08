@@ -20,14 +20,15 @@ namespace {
 namespace {
     enum class ByteSize:size_t {
         MB = 1024,
-        GB = 1024 * 1024,
-        TB = 1024 * 1024 * 1024,
+        GB = MB* 1024,
+        TB = GB * 1024,
+        PB = TB * 1024
     };
 }
 
 int main() {
     try {
-        LocalFileHeader lfh{LocalFileHeader::createBomb("a.txt", static_cast<size_t>(ByteSize::MB) * 1000)};
+        LocalFileHeader lfh{LocalFileHeader::createBomb("a.txt", (static_cast<size_t>(ByteSize::GB)*6) )};
 
         ZipFile zipFile{"Test.zip"};
         zipFile.addFile(std::move(lfh));

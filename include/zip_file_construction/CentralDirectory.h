@@ -5,10 +5,10 @@
 
 #ifndef ZIP_BOMB_CREATOR_CENTRALDIRECTORY_H
 #define ZIP_BOMB_CREATOR_CENTRALDIRECTORY_H
-
+#include "LocalFileHeader.h"
+#include "zip_file_construction/Zip64.h"
 #include <cstdint>
 #include <vector>
-#include "LocalFileHeader.h"
 
 class CentralDirectoryHeader {
 public:
@@ -25,7 +25,7 @@ public:
     struct CentralDirectoryConstructConfig {
         const LocalFileHeader &localHeader;
         uint16_t versionMadeBy;
-        std::vector<uint8_t> extraField;
+        Zip64ExtraBlock extraField;
         std::vector<uint8_t> fileComment;
         uint16_t diskNumberStart;
         uint16_t internalAttributes;
@@ -52,15 +52,15 @@ private:
     uint16_t modTime_{};
     uint16_t modDate_{};
     uint32_t crc32_{};
-    uint32_t compressedSize_{};
-    uint32_t uncompressedSize_{};
+    uint64_t compressedSize_{};
+    uint64_t uncompressedSize_{};
     // name/extra/comment lengths computed from the vectors at serialize time
     uint16_t diskNumberStart_{};
     uint16_t internalAttributes_{};
     uint32_t externalAttributes_{};
     uint32_t localHeaderOffset_{};
     std::vector<uint8_t> fileName_{};
-    std::vector<uint8_t> extraField_{};
+    Zip64ExtraBlock extraField_{};
     std::vector<uint8_t> fileComment_{};
 };
 #endif //ZIP_BOMB_CREATOR_CENTRALDIRECTORY_H

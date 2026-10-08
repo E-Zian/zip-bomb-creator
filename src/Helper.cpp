@@ -8,8 +8,8 @@
 
 void helper::appendBytes16Small(std::vector<uint8_t> &buffer,const uint16_t data) {
     buffer.push_back(data & 0xff);
-
     buffer.push_back(data >> 8);
+
 }
 
 void helper::appendBytes32Small(std::vector<uint8_t> &buffer,const uint32_t data) {
@@ -19,6 +19,18 @@ void helper::appendBytes32Small(std::vector<uint8_t> &buffer,const uint32_t data
     buffer.push_back(data >> 24);
 
 }
+
+void helper::appendBytes64Small(std::vector<uint8_t> &buffer, const uint64_t data) {
+    buffer.push_back(data & 0xff);
+    buffer.push_back(data >> 8);
+    buffer.push_back(data >> 16);
+    buffer.push_back(data >> 24);
+    buffer.push_back(data >> 32);
+    buffer.push_back(data >> 40);
+    buffer.push_back(data >> 48);
+    buffer.push_back(data >> 56);
+}
+
 
 void helper::displayBytes(const std::span<const uint8_t> buffer) {
    for (size_t i{};i<buffer.size();i++) {

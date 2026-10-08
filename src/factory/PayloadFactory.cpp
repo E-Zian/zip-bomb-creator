@@ -18,7 +18,9 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     auto [code, length]{HuffmanTable::fixedSymbolTable('a')};
     writer.add(code, length);
 
-    const MatchCode lengthCode{lz77::getLengthCode(static_cast<int>(lz77::LengthValue::MAX))};
+    constexpr int bytesToCopy{256};
+    
+    const MatchCode lengthCode{lz77::getLengthCode(bytesToCopy)};
     const MatchCode distanceCode{lz77::getDistanceCode(1)};
 
     for (size_t i{}; i < 4 * size; ++i) {
@@ -33,7 +35,7 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
 
     auto [endCode, endLength]{HuffmanTable::fixedSymbolTable(256)};
     writer.add(endCode, endLength);
-    const size_t repeatedData{4 * size * 258};
+    const size_t repeatedData{4 * size * bytesToCopy};
 
     const size_t uncompressedSize{repeatedData + 1};
 

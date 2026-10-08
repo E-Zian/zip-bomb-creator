@@ -16,6 +16,7 @@ set(sources
         src/factory/PayloadFactory.cpp
         src/deflation/Lz77.cpp
         src/deflation/HuffmanTree.cpp
+        src/zip_file_construction/Zip64.cpp
 
 )
 set(includes
@@ -31,6 +32,7 @@ set(includes
         include/deflation/Lz77.h
         include/factory/PayloadFactory.h
         include/zip_file_construction/Crc32.h
+        include/zip_file_construction/Zip64.h
 
 )
 

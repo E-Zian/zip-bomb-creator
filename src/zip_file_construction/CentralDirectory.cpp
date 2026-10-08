@@ -5,6 +5,7 @@
 #include "Helper.h"
 
 CentralDirectoryHeader CentralDirectoryHeader::createBasic(const LocalFileHeader &localHeader) {
+    using namespace helper;
     CentralDirectoryConstructConfig config{.localHeader = localHeader};
     config.versionMadeBy = (static_cast<uint16_t>(Host::WINDOWS) << 8) | localHeader.getVersion();
     config.extraField = {};
@@ -13,6 +14,14 @@ CentralDirectoryHeader CentralDirectoryHeader::createBasic(const LocalFileHeader
     config.internalAttributes = 0;
     config.externalAttributes = 0;
 
+    const bool compressedSizeOverflow{localHeader.getCompressedSize() >= 0xFFFFFFFFULL};
+    const bool uncompressedSizeOverflow{localHeader.getUncompressedSize() >= 0xFFFFFFFFULL};
+
+    if (compressedSizeOverflow || uncompressedSizeOverflow) {
+        config.extraField.id = Zip64ExtraBlock::ZIP64_EXTENDED_INFO;
+        if (uncompressedSizeOverflow)appendBytes64Small(config.extraField.data, localHeader.getUncompressedSize());
+        if (compressedSizeOverflow)appendBytes64Small(config.extraField.data, localHeader.getCompressedSize());
+    }
     return CentralDirectoryHeader(config);
 }
 
@@ -46,8 +55,22 @@ std::vector<uint8_t> CentralDirectoryHeader::serialize() {
     appendBytes16Small(serialized, modTime_);
     appendBytes16Small(serialized, modDate_);
     appendBytes32Small(serialized, crc32_);
-    appendBytes32Small(serialized, compressedSize_);
-    appendBytes32Small(serialized, uncompressedSize_);
+
+    const bool compressedSizeOverflow{compressedSize_ >= 0xFFFFFFFFULL};
+    const bool uncompressedSizeOverflow{uncompressedSize_ >= 0xFFFFFFFFULL};
+
+    if (compressedSizeOverflow) {
+        appendBytes32Small(serialized, 0xFFFFFFFF);
+    } else {
+        appendBytes32Small(serialized, compressedSize_);
+    }
+
+    if (uncompressedSizeOverflow) {
+        appendBytes32Small(serialized, 0xFFFFFFFF);
+    } else {
+        appendBytes32Small(serialized, uncompressedSize_);
+    }
+
     appendBytes16Small(serialized, static_cast<uint16_t>(fileName_.size()));
     appendBytes16Small(serialized, static_cast<uint16_t>(extraField_.size()));
     appendBytes16Small(serialized, static_cast<uint16_t>(fileComment_.size()));
@@ -56,7 +79,8 @@ std::vector<uint8_t> CentralDirectoryHeader::serialize() {
     appendBytes32Small(serialized, externalAttributes_);
     appendBytes32Small(serialized, localHeaderOffset_);
     serialized.insert(serialized.end(), fileName_.begin(), fileName_.end());
-    serialized.insert(serialized.end(), extraField_.begin(), extraField_.end());
+    std::vector<uint8_t> serializedExtraField{extraField_.serialize()};
+    serialized.insert(serialized.end(), serializedExtraField.begin(), serializedExtraField.end());
     serialized.insert(serialized.end(), fileComment_.begin(), fileComment_.end());
 
     return serialized;
