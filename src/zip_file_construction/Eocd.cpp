@@ -8,9 +8,6 @@
 Eocd::Eocd(const EocdConstructConfig &config) : entriesOnThisDisk_{static_cast<uint16_t>(config.entries.size())},
                                                 totalEntries_{entriesOnThisDisk_}, centralDirSize_{},
                                                 comment_{config.comment} {
-    for (auto &entry: config.entries) {
-        centralDirSize_ += entry.size();
-    }
 }
 
 std::vector<uint8_t> Eocd::serialize() {

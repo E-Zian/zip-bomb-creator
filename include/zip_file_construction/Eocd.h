@@ -29,7 +29,13 @@ public:
     void setCentralDirOffset(const uint32_t centralDirOffset) {
         centralDirOffset_ = centralDirOffset;
     }
+
+    void setCentralDirSize(const uint32_t size) {
+        centralDirSize_ = size;
+    }
+
     static constexpr uint32_t signature{0x06054b50};
+
 private:
     uint16_t diskNumber_{};
     uint16_t centralDirStartDisk_{};

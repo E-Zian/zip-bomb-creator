@@ -30,7 +30,7 @@ public:
         std::optional<uint32_t> crc32;
     };
 
-    enum class Version :uint8_t {
+    enum class Version :uint16_t {
         ORIGINAL = 10,
         DEFLATE = 20,
         ZIP64 = 45

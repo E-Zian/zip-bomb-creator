@@ -22,6 +22,7 @@ CentralDirectoryHeader CentralDirectoryHeader::createBasic(const LocalFileHeader
         if (uncompressedSizeOverflow)appendBytes64Small(config.extraField.data, localHeader.getUncompressedSize());
         if (compressedSizeOverflow)appendBytes64Small(config.extraField.data, localHeader.getCompressedSize());
     }
+
     return CentralDirectoryHeader(config);
 }
 
@@ -88,4 +89,15 @@ std::vector<uint8_t> CentralDirectoryHeader::serialize() {
 
 size_t CentralDirectoryHeader::size() const {
     return minSize + fileName_.size() + extraField_.size() + fileComment_.size();
+}
+
+void CentralDirectoryHeader::setLocalHeaderOffset(const uint64_t offset) {
+    using namespace helper;
+    if (offset >= 0xFFFFFFFF) {
+        localHeaderOffset_ = 0xFFFFFFFF;
+        appendBytes64Small(extraField_.data, offset);
+        versionNeeded_ = static_cast<uint16_t>(LocalFileHeader::Version::ZIP64);
+    } else {
+        localHeaderOffset_ = offset;
+    }
 }

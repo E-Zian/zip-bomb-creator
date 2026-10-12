@@ -18,13 +18,19 @@ std::optional<std::vector<uint8_t> > ZipFile::serialize() {
 
     Eocd eocd{{.entries = centralDirectories_, .comment = {}}};
 
+    uint32_t eocdCentralDirSize{};
+
     for (size_t i{}; i < localFileHeaders_.size(); ++i) {
         centralDirectories_[i].setLocalHeaderOffset(serialized.size());
         std::vector<uint8_t> tempLocalFileHeaders{localFileHeaders_[i].serialize()};
         serialized.insert(serialized.end(), tempLocalFileHeaders.begin(), tempLocalFileHeaders.end());
+
+        eocdCentralDirSize += centralDirectories_[i].size();
     }
 
     eocd.setCentralDirOffset(serialized.size());
+
+    eocd.setCentralDirSize(eocdCentralDirSize);
 
     for (size_t i{}; i < centralDirectories_.size(); ++i) {
         std::vector<uint8_t> tempCentralDirHeaders{centralDirectories_[i].serialize()};

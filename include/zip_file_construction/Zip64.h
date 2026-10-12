@@ -16,9 +16,9 @@ struct Zip64ExtraBlock {
         WINZIP_AES = 0x9901,
     };
 
-    std::vector<uint8_t> serialize() const;
+    [[nodiscard]] std::vector<uint8_t> serialize() const;
 
-    uint8_t size() const;
+    [[nodiscard]] uint8_t size() const;
 
     uint16_t id{};
     std::vector<uint8_t> data{};

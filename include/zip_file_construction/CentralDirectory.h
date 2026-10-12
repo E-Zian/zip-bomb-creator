@@ -40,9 +40,7 @@ public:
 
     [[nodiscard]] size_t size() const;
 
-    void setLocalHeaderOffset(const uint32_t offset) {
-        localHeaderOffset_ = offset;
-    }
+    void setLocalHeaderOffset(uint64_t offset) ;
 
 private:
     uint16_t versionMadeBy_{};
