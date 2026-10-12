@@ -23,7 +23,12 @@ std::optional<std::vector<uint8_t> > ZipFile::serialize() {
     for (size_t i{}; i < localFileHeaders_.size(); ++i) {
         centralDirectories_[i].setLocalHeaderOffset(serialized.size());
         std::vector<uint8_t> tempLocalFileHeaders{localFileHeaders_[i].serialize()};
+        if (serialized.empty())
+            serialized = std::move(tempLocalFileHeaders);
+        else {
         serialized.insert(serialized.end(), tempLocalFileHeaders.begin(), tempLocalFileHeaders.end());
+
+        }
 
         eocdCentralDirSize += centralDirectories_[i].size();
     }
@@ -36,6 +41,7 @@ std::optional<std::vector<uint8_t> > ZipFile::serialize() {
         std::vector<uint8_t> tempCentralDirHeaders{centralDirectories_[i].serialize()};
         serialized.insert(serialized.end(), tempCentralDirHeaders.begin(), tempCentralDirHeaders.end());
     }
+    eocd.setOffsetOfEocdRecord(serialized.size());
     const std::vector<uint8_t> eocdSerialized{eocd.serialize()};
 
     serialized.insert(serialized.end(), eocdSerialized.begin(), eocdSerialized.end());

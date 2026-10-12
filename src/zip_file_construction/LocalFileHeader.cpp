@@ -111,7 +111,7 @@ LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t s
     config.fileName.assign(fileName.begin(), fileName.end());
     config.extraField = {};
 
-    config.data.assign(data.begin(), data.end());
+    config.data = std::move(data);
     config.crc32 = crc32;
     return LocalFileHeader{config};
 }

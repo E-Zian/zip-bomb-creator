@@ -42,6 +42,15 @@ public:
 
     void setLocalHeaderOffset(uint64_t offset) ;
 
+    [[nodiscard]] uint16_t getVersionMadeBy() const {
+        return versionMadeBy_;
+    };
+
+    [[nodiscard]] uint16_t getVersionNeeded() const {
+        return versionNeeded_;
+    };
+
+
 private:
     uint16_t versionMadeBy_{};
     uint16_t versionNeeded_{};

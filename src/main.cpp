@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fstream>
 
 #include "../include/zip_file_construction/LocalFileHeader.h"
@@ -10,9 +11,14 @@
 
 namespace {
     bool writeFile(const std::string &fileName, const std::span<uint8_t> data) {
-        std::ofstream out(fileName, std::ios::binary);
-        out.write(reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
+        const auto start {std::chrono::steady_clock::now()};
 
+        std::cout << "writing file: " << fileName << '\n';
+        std::ofstream out(fileName, std::ios::binary);
+        out.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
+
+        const auto end {std::chrono::steady_clock::now()};
+        std::cout << "Total file write time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << '\n' ;
         return out.good();
     }
 }
@@ -28,10 +34,13 @@ namespace {
 
 int main() {
     try {
+        std::cout << "Creating local file header bomb\n";
         LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*100) )};
 
         ZipFile zipFile{"Test.zip"};
         zipFile.addFile(std::move(lfh));
+
+
         auto file{zipFile.serialize()};
         if (file) {
             if (writeFile(zipFile.filename_, *file)) {

@@ -21,29 +21,45 @@ public:
 
     std::vector<uint8_t> serialize();
 
-    void setTotalEntries(const uint16_t totalEntries) {
+    void setTotalEntries(const uint64_t totalEntries) {
         totalEntries_ = totalEntries;
         entriesOnThisDisk_ = totalEntries;
     }
 
-    void setCentralDirOffset(const uint32_t centralDirOffset) {
+    void setCentralDirOffset(const uint64_t centralDirOffset) {
         centralDirOffset_ = centralDirOffset;
     }
 
-    void setCentralDirSize(const uint32_t size) {
+    void setCentralDirSize(const uint64_t size) {
         centralDirSize_ = size;
     }
 
     static constexpr uint32_t signature{0x06054b50};
 
+    static constexpr uint32_t recordSignature{0x06064b50};
+    static constexpr uint32_t locatorSignature{0x07064b50};
+
+    void setOffsetOfEocdRecord(const uint64_t offsetOfEocdRecord) {
+        offsetOfEocdRecord_ = offsetOfEocdRecord;
+    }
+
 private:
-    uint16_t diskNumber_{};
-    uint16_t centralDirStartDisk_{};
-    uint16_t entriesOnThisDisk_{};
-    uint16_t totalEntries_{};
-    uint32_t centralDirSize_{};
-    uint32_t centralDirOffset_{};
+    uint32_t diskNumber_{}; // 16
+    uint32_t centralDirStartDisk_{}; // 16
+    uint64_t entriesOnThisDisk_{}; // 16
+    uint64_t totalEntries_{}; // 16
+    uint64_t centralDirSize_{}; //32
+    uint64_t centralDirOffset_{}; //32
     std::vector<uint8_t> comment_{};
+
+    // Zip64 record section
+    uint16_t versionMadeBy_{};
+    uint16_t versionNeeded_{};
+
+    // Zip64 locator section
+    uint32_t diskWithEocdRecord_{}; // Should be just 0
+    uint64_t offsetOfEocdRecord_{};
+    uint32_t totalDisks_{1}; // Should be just 1
 
 };
 
