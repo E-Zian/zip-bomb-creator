@@ -23,6 +23,10 @@ class BitWriter {
         return bitBuffer_ == 0;
     }
 
+    [[nodiscard]] size_t size() const {
+        return bits_.size();
+    }
+
 private:
     std::vector<uint8_t> bits_{};
     uint8_t bitBuffer_{};

@@ -32,6 +32,7 @@ namespace {
 
 int main() {
     try {
+        const auto start{std::chrono::steady_clock::now()};
         std::cout << "Creating local file header bomb\n";
         LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*1) )};
 
@@ -47,6 +48,11 @@ int main() {
                 std::cout << "zip file failed write\n";
             }
         }
+
+        const auto end{std::chrono::steady_clock::now()};
+
+        std::cout << "Total run time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << '\n';
+
     } catch (std::exception &e) {
         std::cout << "exception: " << e.what() << std::endl;
     }
