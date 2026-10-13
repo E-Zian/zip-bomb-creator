@@ -19,6 +19,10 @@ class BitWriter {
 
     std::vector<uint8_t> release();
 
+    [[nodiscard]] bool bufferEmpty() const {
+        return bitBuffer_ == 0;
+    }
+
 private:
     std::vector<uint8_t> bits_{};
     uint8_t bitBuffer_{};

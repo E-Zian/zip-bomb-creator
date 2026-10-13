@@ -21,9 +21,6 @@ namespace {
         std::cout << "Total file write time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << '\n' ;
         return out.good();
     }
-}
-
-namespace {
     enum class ByteSize:size_t {
         MB = 1024,
         GB = MB* 1024,
@@ -32,10 +29,11 @@ namespace {
     };
 }
 
+
 int main() {
     try {
         std::cout << "Creating local file header bomb\n";
-        LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*100) )};
+        LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*1) )};
 
         ZipFile zipFile{"Test.zip"};
         zipFile.addFile(std::move(lfh));

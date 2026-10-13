@@ -2,7 +2,6 @@
 // Created by LeeEeZian on 30/9/2026.
 //
 #include "zip_file_construction/Crc32.h"
-
 #include <array>
 
 void Crc32::update(const uint8_t byte) {

