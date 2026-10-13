@@ -10,6 +10,20 @@
 #include <numeric>
 #include <cmath>
 
+namespace {
+    void repeatInPlace(std::vector<uint8_t> &vector, const size_t n) {
+        if (n <= 1) return;
+        const size_t originalSize{vector.size()};
+        vector.resize(vector.size() * n);
+
+        size_t newSize{originalSize};
+        while (newSize < vector.size()) {
+            std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(newSize));
+            newSize += originalSize;
+        }
+    }
+}
+
 DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     const auto startTime{std::chrono::steady_clock::now()};
     using namespace lz77;
@@ -31,10 +45,10 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     auto [lCode, lLength]{HuffmanTable::fixedSymbolTable(lengthCode.symbol)};
     auto [dCode, dLength]{HuffmanTable::fixedDistanceTable(distanceCode.symbol)};
 
-    const int totalRepeatableBits{lLength+ dLength+lengthCode.extraBit+ distanceCode.extraBit};
+    const int totalRepeatableBits{lLength + dLength + lengthCode.extraBit + distanceCode.extraBit};
 
-    const int bytesTillRepeat {std::lcm(8, totalRepeatableBits)/8};
-    const int iterationsTillRepeat {std::lcm(8, totalRepeatableBits)/totalRepeatableBits};
+    const int bytesTillRepeat{std::lcm(8, totalRepeatableBits) / 8};
+    const int iterationsTillRepeat{std::lcm(8, totalRepeatableBits) / totalRepeatableBits};
 
     for (size_t i{}; i < iterationsTillRepeat * 2; ++i) {
         writer.add(lCode, lLength);
@@ -49,23 +63,31 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
 
     std::vector<uint8_t> all{writer.release()};
 
-    const long long periodStart{((headerBitLength+bytesTillRepeat*8)/8)};
+    const long long periodStart{((headerBitLength + bytesTillRepeat * 8) / 8)};
 
-    const std::vector<uint8_t> start{all.begin(),all.begin()+periodStart};
-    std::vector<uint8_t> period{all.begin()+periodStart,all.begin()+periodStart+bytesTillRepeat};
-    std::vector<uint8_t> end{all.begin()+periodStart+bytesTillRepeat,all.end()};
+    const std::vector<uint8_t> start{all.begin(), all.begin() + periodStart};
+    std::vector<uint8_t> period{all.begin() + periodStart, all.begin() + periodStart + bytesTillRepeat};
+    std::vector<uint8_t> end{all.begin() + periodStart + bytesTillRepeat, all.end()};
 
     std::vector<uint8_t> data{start};
-    data.reserve(start.size() + period.size()*(size-1) + end.size());
+    data.reserve(start.size() + period.size() * (size - 1) + end.size());
 
     const size_t totalIterations = 4 * size;
-    const size_t numberOfPeriods  = totalIterations/iterationsTillRepeat;
+    const size_t numberOfPeriods = totalIterations / iterationsTillRepeat;
 
-    for (size_t i = 0; i < numberOfPeriods - 1; ++i) {
-        data.insert(data.end(), period.begin(), period.end());
+    size_t remainingPeriods{numberOfPeriods - 1};
+    std::vector<uint8_t> tempPeriod{period.begin(), period.end()};
+    while (remainingPeriods) {
+        if (remainingPeriods & 1) {
+            data.insert(data.end(), tempPeriod.begin(), tempPeriod.end());
+        }
+
+        remainingPeriods >>= 1;
+        repeatInPlace(tempPeriod,2);
+
     }
 
-    data.insert(data.end(), end.begin(),   end.end());
+    data.insert(data.end(), end.begin(), end.end());
 
     const size_t repeatedData{4 * size * bytesToCopy};
 

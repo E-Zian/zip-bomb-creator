@@ -34,13 +34,18 @@ int main() {
     try {
         const auto start{std::chrono::steady_clock::now()};
         std::cout << "Creating local file header bomb\n";
-        LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*1) )};
+        LocalFileHeader lfh{LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB)*100) )};
 
         ZipFile zipFile{"Test.zip"};
         zipFile.addFile(std::move(lfh));
 
+        const auto zipSerializationStart{std::chrono::steady_clock::now()};
 
         auto file{zipFile.serialize()};
+        const auto zipSerializationEnd{std::chrono::steady_clock::now()};
+        std::cout << "Total zip serialization time : " << std::chrono::duration_cast<std::chrono::milliseconds>(zipSerializationEnd-zipSerializationStart) << '\n';
+
+
         if (file) {
             if (writeFile(zipFile.filename_, *file)) {
                 std::cout << "zip file written\n";
