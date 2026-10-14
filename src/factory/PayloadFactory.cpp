@@ -10,22 +10,9 @@
 #include <numeric>
 #include <cmath>
 
-namespace {
-    void repeatInPlace(std::vector<uint8_t> &vector, const size_t n) {
-        if (n <= 1) return;
-        const size_t originalSize{vector.size()};
-        vector.resize(vector.size() * n);
+#include "Timer.h"
 
-        size_t newSize{originalSize};
-        while (newSize < vector.size()) {
-            std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(newSize));
-            newSize += originalSize;
-        }
-    }
-}
-
-DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
-    const auto startTime{std::chrono::steady_clock::now()};
+CreateBombPayloadResult payloadFactory::createFixedBombPayload(const size_t size) {
     using namespace lz77;
     BitWriter writer;
 
@@ -69,29 +56,17 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
     std::vector<uint8_t> period{all.begin() + periodStart, all.begin() + periodStart + bytesTillRepeat};
     std::vector<uint8_t> end{all.begin() + periodStart + bytesTillRepeat, all.end()};
 
-    std::vector<uint8_t> data{start};
-    data.reserve(start.size() + period.size() * (size - 1) + end.size());
 
     const size_t totalIterations = 4 * size;
     const size_t numberOfPeriods = totalIterations / iterationsTillRepeat;
 
-    size_t remainingPeriods{numberOfPeriods - 1};
-    std::vector<uint8_t> tempPeriod{period.begin(), period.end()};
-    while (remainingPeriods) {
-        if (remainingPeriods & 1) {
-            data.insert(data.end(), tempPeriod.begin(), tempPeriod.end());
-        }
-
-        remainingPeriods >>= 1;
-        repeatInPlace(tempPeriod,2);
-
-    }
-
-    data.insert(data.end(), end.begin(), end.end());
+    const size_t remainingPeriods{numberOfPeriods - 1};
 
     const size_t repeatedData{4 * size * bytesToCopy};
 
     const size_t uncompressedSize{repeatedData + 1};
+
+    Timer CrcCalculation{"Crc32 calculation"};
 
     Crc32 BombCrc32{};
 
@@ -109,9 +84,7 @@ DeflateResult payloadFactory::createFixedBombPayload(const size_t size) {
         remaining >>= 1;
     }
 
-    const auto endTime{std::chrono::steady_clock::now()};
-    const auto elapsed{std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime)};
+    const size_t compressedSize{start.size()+period.size()*remainingPeriods+end.size()};
 
-    std::cout << "Total time of for bomb crc calculation " << elapsed << '\n';
-    return {.data = data, .uncompressedSize = uncompressedSize, .crc32 = BombCrc32.getCrc32()};
+    return {.bombRecipe = {.start = start,.period = period,.end = end,.kbSize = size,.numberOfPeriods = remainingPeriods},.uncompressedSize = uncompressedSize,.compressedSize = compressedSize,.crc32 = BombCrc32.getCrc32()};
 }

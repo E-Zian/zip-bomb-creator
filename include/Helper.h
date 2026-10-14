@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <span>
 #include <vector>
+#include <chrono>
+#include <fstream>
 
 namespace helper {
     void appendBytes16Small(std::vector<uint8_t> &buffer, uint16_t data);
@@ -16,6 +18,8 @@ namespace helper {
     void appendBytes64Small(std::vector<uint8_t> &buffer, uint64_t data);
 
     void displayBytes(std::span<const uint8_t> buffer);
+
+    bool writeFile(std::ofstream& out, std::span<uint8_t> data) ;
 }
 
 

@@ -9,9 +9,11 @@
 #include "zip_file_construction/Zip64.h"
 #include <cstdint>
 #include <optional>
-#include <span>
 #include <string>
 #include <vector>
+#include <fstream>
+
+#include "factory/PayloadFactory.h"
 
 
 class LocalFileHeader {
@@ -26,7 +28,8 @@ public:
         uint64_t uncompressedSize;
         std::vector<uint8_t> fileName;
         Zip64ExtraBlock extraField;
-        std::vector<uint8_t> data;
+        std::optional<BombPayloadRecipe> bombRecipe{};
+        std::vector<uint8_t> data{};
         std::optional<uint32_t> crc32;
     };
 
@@ -43,12 +46,13 @@ public:
     };
 
     // static  uint32_t calculateCRC32(std::span<const uint8_t> data);
+    LocalFileHeader() = default;
 
     explicit LocalFileHeader(const FileHeaderConstructConfig &config);
 
     static constexpr uint32_t signature{0x04034b50};
 
-    std::vector<uint8_t> serialize();
+    size_t serializeTo(std::ofstream &out);
 
     static LocalFileHeader createStored(std::string fileName, std::string data);
 
@@ -107,6 +111,7 @@ private:
     std::vector<uint8_t> fileName_{};
     Zip64ExtraBlock extraField_{};
 
+    std::optional<BombPayloadRecipe> bombRecipe_{};
     std::vector<uint8_t> data_{};
 };
 
