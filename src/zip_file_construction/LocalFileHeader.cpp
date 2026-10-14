@@ -36,7 +36,6 @@ std::vector<uint8_t> LocalFileHeader::serialize() {
     using namespace helper;
 
     std::vector<uint8_t> serialized;
-
     appendBytes32Small(serialized, signature);
     appendBytes16Small(serialized, version_);
     appendBytes16Small(serialized, flags_);

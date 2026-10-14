@@ -40,11 +40,10 @@ int main() {
         zipFile.addFile(std::move(lfh));
 
         const auto zipSerializationStart{std::chrono::steady_clock::now()};
-
+        std::cout << "Serializing zip file"<<'\n';
         auto file{zipFile.serialize()};
         const auto zipSerializationEnd{std::chrono::steady_clock::now()};
         std::cout << "Total zip serialization time : " << std::chrono::duration_cast<std::chrono::milliseconds>(zipSerializationEnd-zipSerializationStart) << '\n';
-
 
         if (file) {
             if (writeFile(zipFile.filename_, *file)) {
