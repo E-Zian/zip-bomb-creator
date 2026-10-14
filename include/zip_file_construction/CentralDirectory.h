@@ -36,7 +36,7 @@ public:
 
     explicit CentralDirectoryHeader(const CentralDirectoryConstructConfig &config);
 
-    std::vector<uint8_t> serialize();
+    size_t serializeTo(std::ofstream &out);
 
     [[nodiscard]] size_t size() const;
 

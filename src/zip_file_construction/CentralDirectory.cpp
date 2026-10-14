@@ -43,7 +43,7 @@ CentralDirectoryHeader::CentralDirectoryHeader(const CentralDirectoryConstructCo
     fileComment_{config.fileComment} {
 }
 
-std::vector<uint8_t> CentralDirectoryHeader::serialize() {
+size_t CentralDirectoryHeader::serializeTo(std::ofstream &out) {
     using namespace helper;
 
     std::vector<uint8_t> serialized;
@@ -84,7 +84,9 @@ std::vector<uint8_t> CentralDirectoryHeader::serialize() {
     serialized.insert(serialized.end(), serializedExtraField.begin(), serializedExtraField.end());
     serialized.insert(serialized.end(), fileComment_.begin(), fileComment_.end());
 
-    return serialized;
+    writeFile(out,serialized);
+
+    return serialized.size();
 }
 
 size_t CentralDirectoryHeader::size() const {

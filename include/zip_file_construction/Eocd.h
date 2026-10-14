@@ -19,7 +19,7 @@ public:
 
     explicit Eocd(const EocdConstructConfig& config);
 
-    std::vector<uint8_t> serialize();
+    size_t serializeTo(std::ofstream& out);
 
     void setTotalEntries(const uint64_t totalEntries) {
         totalEntries_ = totalEntries;

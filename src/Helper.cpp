@@ -2,7 +2,8 @@
 // Created by LeeEeZian on 9/9/2026.
 //
 #include "Helper.h"
-
+#include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 
@@ -37,4 +38,12 @@ void helper::displayBytes(const std::span<const uint8_t> buffer) {
        std::cout << std::hex << std::setw(2) << std::setfill('0')<<static_cast<int>(buffer[i]) << " ";
        if ((i + 1) % 16 == 0) std::cout << '\n';
    }
+}
+
+bool helper::writeFile(std::ofstream& out, const std::span<uint8_t> data) {
+    const auto start {std::chrono::steady_clock::now()};
+
+    out.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
+
+    return out.good();
 }

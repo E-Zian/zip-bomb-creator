@@ -10,6 +10,7 @@
 #include "CentralDirectory.h"
 #include "LocalFileHeader.h"
 #include "Eocd.h"
+#include "Helper.h"
 
 #include <utility>
 #include <vector>
@@ -20,7 +21,7 @@ class ZipFile {
     std::string filename_;
     void addFile(LocalFileHeader&& fileHeader);
 
-    [[nodiscard]] std::optional<std::vector<uint8_t>>  serialize() ;
+    bool serializeTo(std::ofstream& out) ;
 
     private:
     std::vector<LocalFileHeader> localFileHeaders_;

@@ -14,7 +14,7 @@ Eocd::Eocd(const EocdConstructConfig &config) : entriesOnThisDisk_{static_cast<u
                                                 versionNeeded_{config.entries.at(0).getVersionNeeded()} {
 }
 
-std::vector<uint8_t> Eocd::serialize() {
+size_t Eocd::serializeTo(std::ofstream& out) {
     using namespace helper;
 
     std::vector<uint8_t> serialized;
@@ -73,7 +73,10 @@ std::vector<uint8_t> Eocd::serialize() {
 
     appendBytes16Small(serialized, static_cast<uint16_t>(comment_.size()));
 
+
     serialized.insert(serialized.end(), comment_.begin(), comment_.end());
 
-    return serialized;
+    writeFile(out, serialized);
+
+    return serialized.size();
 }
