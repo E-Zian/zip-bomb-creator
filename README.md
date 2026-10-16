@@ -14,9 +14,14 @@ distance 1 and length 256. Because DEFLATE copies overlap, each reference re-cop
 byte that was just written, so one byte unfolds into gigabytes at decompression time.
 The archive wraps this in hand-built ZIP records.
 
+## Dependencies
+
+- **CMake** 3.20 or newer
+- A **C++20** compiler (GCC, Clang, or MSVC)
+
 ## Build & run
 
-Built with CMake (Ninja). From the project root:
+Built with CMake. From the project root:
 
 ```bash
 cmake --build cmake-build-debug

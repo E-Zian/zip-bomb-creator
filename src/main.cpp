@@ -33,7 +33,7 @@ int main() {
         LocalFileHeader lfh{};
         {
             Timer localHeaderBomb{"Creating local file header bomb"};
-            lfh = LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSize::GB) * 1000));
+            lfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSize::GB) * 1000));
         }
 
         ZipFile zipFile{fileName};
