@@ -11,7 +11,7 @@
 #include <iostream>
 
 namespace {
-    enum class ByteSize:size_t {
+    enum class ByteSizeBaseKB:size_t {
         MB = 1024,
         GB = MB * 1024,
         TB = GB * 1024,
@@ -33,7 +33,7 @@ int main() {
         LocalFileHeader lfh{};
         {
             Timer localHeaderBomb{"Creating local file header bomb"};
-            lfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSize::GB) * 1000));
+            lfh = LocalFileHeader::createBomb("Your_Mum.png", (static_cast<size_t>(ByteSizeBaseKB::GB) * 10));
         }
 
         ZipFile zipFile{fileName};

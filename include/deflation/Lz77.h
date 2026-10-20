@@ -7,6 +7,9 @@
 
 #include <array>
 #include <cstdint>
+
+#include "Helper.h"
+
 namespace lz77 {
     struct MatchCode {
         int symbol;
@@ -20,6 +23,12 @@ namespace lz77 {
 
     MatchCode getDistanceCode(int distance);
 }
+
+class Lz77 {
+    public:
+private:
+    std::array<uint8_t, static_cast<int>(helper::ByteSize::KB)*32> ringBuffer {};
+};
 
 
 #endif //ZIP_BOMB_CREATOR_LZ77_H

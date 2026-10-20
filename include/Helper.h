@@ -20,6 +20,14 @@ namespace helper {
     void displayBytes(std::span<const uint8_t> buffer);
 
     bool writeFile(std::ofstream& out, std::span<uint8_t> data) ;
+
+    enum class ByteSize:size_t {
+        KB = 1024,
+        MB = KB * 1024,
+        GB = MB * 1024,
+        TB = GB * 1024,
+        PB = TB * 1024
+    };
 }
 
 

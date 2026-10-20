@@ -25,7 +25,7 @@ CreateBombPayloadResult payloadFactory::createFixedBombPayload(const size_t size
 
     writer.add(code, length);
 
-    constexpr int bytesToCopy{256};
+    constexpr int bytesToCopy{static_cast<int>(lz77::LengthValue::MAX)};
 
     const MatchCode lengthCode{lz77::getLengthCode(bytesToCopy)};
     const MatchCode distanceCode{lz77::getDistanceCode(1)};
