@@ -22,13 +22,9 @@ namespace lz77 {
     MatchCode getLengthCode(int length);
 
     MatchCode getDistanceCode(int distance);
-}
 
-class Lz77 {
-    public:
-private:
-    std::array<uint8_t, static_cast<int>(helper::ByteSize::KB)*32> ringBuffer {};
-};
+    void compress(std::span<uint8_t> byteBuffer);
+}
 
 
 #endif //ZIP_BOMB_CREATOR_LZ77_H
