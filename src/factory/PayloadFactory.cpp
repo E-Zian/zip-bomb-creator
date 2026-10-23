@@ -45,7 +45,7 @@ CreateBombPayloadResult payloadFactory::createFixedBombPayload(const size_t size
         writer.add(distanceCode.extraValue, distanceCode.extraBit);
     }
 
-    auto [endCode, endLength]{HuffmanTable::fixedSymbolTable(256)};
+    auto [endCode, endLength]{HuffmanTable::fixedSymbolTable(HuffmanTable::END_OF_BLOCK)};
     writer.add(endCode, endLength);
 
     std::vector<uint8_t> all{writer.release()};

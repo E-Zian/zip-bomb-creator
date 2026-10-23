@@ -4,6 +4,8 @@
 
 #include "deflation\Lz77.h"
 
+#include "deflation/BitWriter.h"
+
 lz77::MatchCode lz77::getLengthCode(const int length) {
     constexpr std::array base{
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
@@ -40,11 +42,15 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
     constexpr size_t minimumRepeatSize{3};
     constexpr size_t maxWindowSize{static_cast<size_t>(helper::ByteSize::KB) * 32};
 
+    BitWriter writer;
+
+    writer.add(HuffmanTable::BFINAL::YES, 1);
+    writer.add(HuffmanTable::BTYPE::FIXED_HUFFMAN, 2);
 
     size_t windowStart{};
     size_t windowEnd{minimumRepeatSize};
 
-    while (windowEnd+minimumRepeatSize < byteBuffer.size()) {
+    while (windowEnd + minimumRepeatSize < byteBuffer.size()) {
         const size_t windowSize{std::min(maxWindowSize, windowEnd - windowStart)};
 
         auto currentWindowStart{byteBuffer.begin() + static_cast<long long>(windowStart)};
@@ -69,13 +75,19 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
             auto [ia,ib]{
                 std::mismatch(recurringPoint, recurringPoint + static_cast<long long>(maxLength), recurringCheckStart)
             };
+
             const size_t length{static_cast<size_t>(ia - recurringPoint)};
+            const size_t distance{static_cast<size_t>(recurringCheckStart - recurringPoint)};
 
             windowEnd += length;
             if (windowEnd - windowStart > maxWindowSize) windowStart = windowEnd - maxWindowSize;
         }
     }
     if (windowEnd < byteBuffer.size()) {
-        //handle the 1-2 literals
+        const size_t remaining{byteBuffer.size() - windowEnd};
+        for (int i{}; i < remaining; ++i) {
+            auto [code, length]{HuffmanTable::fixedSymbolTable(byteBuffer[windowEnd + i])};
+            writer.add(code, length);
+        }
     }
 }

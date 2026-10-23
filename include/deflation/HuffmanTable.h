@@ -25,6 +25,7 @@ public:
         NO = 0b0,
         YES = 0b1,
     };
+
     enum BTYPE {
         STORED = 0b00,
         FIXED_HUFFMAN = 0b01,
@@ -32,6 +33,7 @@ public:
         ERROR = 0b11
     };
 
+    static constexpr int END_OF_BLOCK{256};
 
     static HuffmanCode fixedSymbolTable(int symbol);
 
