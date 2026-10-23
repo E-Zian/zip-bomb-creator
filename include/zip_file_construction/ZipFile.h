@@ -21,7 +21,7 @@ class ZipFile {
     std::string filename_;
     void addFile(LocalFileHeader&& fileHeader);
 
-    bool serializeTo(std::ofstream& out) ;
+    void serializeTo(std::ofstream& out) ;
 
     private:
     std::vector<LocalFileHeader> localFileHeaders_;

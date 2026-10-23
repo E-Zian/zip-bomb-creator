@@ -48,7 +48,7 @@ public:
     // static  uint32_t calculateCRC32(std::span<const uint8_t> data);
     LocalFileHeader() = default;
 
-    explicit LocalFileHeader(const FileHeaderConstructConfig &config);
+    explicit LocalFileHeader(FileHeaderConstructConfig &config);
 
     static constexpr uint32_t signature{0x04034b50};
 
@@ -57,6 +57,8 @@ public:
     static LocalFileHeader createStored(std::string fileName, std::string data);
 
     static LocalFileHeader createBomb(std::string fileName,size_t size);
+
+    static LocalFileHeader createBasic(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,uint32_t crc32);
 
     [[nodiscard]] uint16_t getVersion() const {
         return version_;

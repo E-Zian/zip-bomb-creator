@@ -7,7 +7,7 @@
 
 #include <array>
 #include <cstdint>
-
+#include "zip_file_construction/LocalFileHeader.h"
 #include "Helper.h"
 
 namespace lz77 {
@@ -23,7 +23,7 @@ namespace lz77 {
 
     MatchCode getDistanceCode(int distance);
 
-    void compress(std::span<uint8_t> byteBuffer);
+    LocalFileHeader fixedCompress(std::string_view fileName,std::span<uint8_t> byteBuffer);
 }
 
 

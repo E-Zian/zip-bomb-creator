@@ -34,7 +34,7 @@ set(includes
         include/zip_file_construction/Crc32.h
         include/zip_file_construction/Zip64.h
         include/Timer.h
-        include/utility/RingBuffer.h
+        include/buffer/RingBuffer.h
 
 )
 

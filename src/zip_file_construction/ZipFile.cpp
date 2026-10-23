@@ -11,7 +11,7 @@ void ZipFile::addFile(LocalFileHeader &&fileHeader) {
     localFileHeaders_.push_back(std::move(fileHeader));
 }
 
-bool ZipFile::serializeTo(std::ofstream &out) {
+void ZipFile::serializeTo(std::ofstream &out) {
     try {
         if (centralDirectories_.empty() || localFileHeaders_.empty() || centralDirectories_.size() != localFileHeaders_.
         size()) { return false; }

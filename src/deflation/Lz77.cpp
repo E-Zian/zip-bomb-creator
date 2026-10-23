@@ -4,6 +4,8 @@
 
 #include "deflation\Lz77.h"
 
+#include <algorithm>
+
 #include "deflation/BitWriter.h"
 
 lz77::MatchCode lz77::getLengthCode(const int length) {
@@ -38,7 +40,7 @@ lz77::MatchCode lz77::getDistanceCode(const int distance) {
     return {.symbol = static_cast<int>(i), .extraBit = extra[i], .extraValue = distance - base[i]};
 }
 
-void lz77::compress(std::span<uint8_t> byteBuffer) {
+LocalFileHeader lz77::fixedCompress(const std::string_view fileName,std::span<uint8_t> byteBuffer) {
     constexpr size_t minimumRepeatSize{3};
     constexpr size_t maxWindowSize{static_cast<size_t>(helper::ByteSize::KB) * 32};
 
@@ -48,7 +50,7 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
     writer.add(HuffmanTable::BTYPE::FIXED_HUFFMAN, 2);
 
     size_t windowStart{};
-    size_t windowEnd{minimumRepeatSize};
+    size_t windowEnd{};
 
     while (windowEnd + minimumRepeatSize < byteBuffer.size()) {
         const size_t windowSize{std::min(maxWindowSize, windowEnd - windowStart)};
@@ -67,8 +69,10 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
         };
 
         if (recurringPoint == currentWindowEnd) {
-            windowEnd += 1;
+            writer.add(HuffmanTable::fixedSymbolTable(*recurringCheckStart));
+            ++windowEnd;
             if (windowEnd - windowStart > maxWindowSize) windowStart += 1;
+
         } else {
             size_t remaining{byteBuffer.size() - windowEnd};
             const size_t maxLength{std::min<size_t>(258, remaining)};
@@ -76,8 +80,20 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
                 std::mismatch(recurringPoint, recurringPoint + static_cast<long long>(maxLength), recurringCheckStart)
             };
 
-            const size_t length{static_cast<size_t>(ia - recurringPoint)};
-            const size_t distance{static_cast<size_t>(recurringCheckStart - recurringPoint)};
+            const int length{static_cast<int>(ia - recurringPoint)};
+            const int distance{static_cast<int>(recurringCheckStart - recurringPoint)};
+
+
+            const MatchCode lengthCode{getLengthCode(length)};
+            const MatchCode distanceCode{getDistanceCode(distance)};
+            auto [lCode, lLength]{HuffmanTable::fixedSymbolTable(lengthCode.symbol)};
+            auto [dCode, dLength]{HuffmanTable::fixedDistanceTable(distanceCode.symbol)};
+
+            writer.add(lCode, lLength);
+            writer.add(lengthCode.extraValue, lengthCode.extraBit);
+
+            writer.add(dCode, dLength);
+            writer.add(distanceCode.extraValue, distanceCode.extraBit);
 
             windowEnd += length;
             if (windowEnd - windowStart > maxWindowSize) windowStart = windowEnd - maxWindowSize;
@@ -85,9 +101,26 @@ void lz77::compress(std::span<uint8_t> byteBuffer) {
     }
     if (windowEnd < byteBuffer.size()) {
         const size_t remaining{byteBuffer.size() - windowEnd};
-        for (int i{}; i < remaining; ++i) {
+        for (size_t i{}; i < remaining; ++i) {
             auto [code, length]{HuffmanTable::fixedSymbolTable(byteBuffer[windowEnd + i])};
             writer.add(code, length);
         }
     }
+
+    auto [endCode, endLength]{HuffmanTable::fixedSymbolTable(HuffmanTable::END_OF_BLOCK)};
+    writer.add(endCode, endLength);
+
+    std::vector<uint8_t> compressedBytes{writer.release()};
+    const size_t compressedSize {compressedBytes.size()};
+
+    const size_t uncompressedSize {byteBuffer.size()};
+
+
+    Crc32 crc{};
+    for (const uint8_t &byte: byteBuffer) {
+        crc.update(byte);
+    }
+    crc.computeCrc32();
+
+    return LocalFileHeader::createBasic(std::string(fileName),std::move(compressedBytes),compressedSize,uncompressedSize,crc.getCrc32());
 }

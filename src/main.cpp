@@ -24,25 +24,26 @@ int main() {
     try {
         Timer totalRuntime{"Total Runtime"};
         std::string fileName{"Test.zip"};
+
         std::ofstream out(fileName, std::ios::binary);
         if (!out) {
             std::cout << "Output file failed to open \n";
             return 1;
         }
 
-        LocalFileHeader lfh{};
+        LocalFileHeader bombLfh{};
         {
             Timer localHeaderBomb{"Creating local file header bomb"};
-            lfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSizeBaseKB::GB) * 100));
+            bombLfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSizeBaseKB::GB) * 100));
         }
 
         ZipFile zipFile{fileName};
-        zipFile.addFile(std::move(lfh));
+        zipFile.addFile(std::move(bombLfh));
 
 
         {
             Timer zipFileSerialization{"Serializing zip file"};
-            auto file{zipFile.serializeTo(out)};
+            zipFile.serializeTo(out);
         }
     } catch (std::exception &e) {
         std::cout << "exception: " << e.what() << std::endl;
