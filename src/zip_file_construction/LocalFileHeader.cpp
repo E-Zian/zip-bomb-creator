@@ -98,6 +98,7 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
     if (!bombRecipe_.has_value()) {
         Timer lfhWrite{"Writing lfh data"};
         writeFile(out, data_);
+        size += data_.size();
     }
     else{
         Timer lfhWrite{"Writing lfh bomb data"};

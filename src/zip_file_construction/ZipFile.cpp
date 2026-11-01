@@ -14,12 +14,12 @@ void ZipFile::addFile(LocalFileHeader &&fileHeader) {
 void ZipFile::serializeTo(std::ofstream &out) {
     try {
         if (centralDirectories_.empty() || localFileHeaders_.empty() || centralDirectories_.size() != localFileHeaders_.
-        size()) { return false; }
+        size()) { return; }
 
         Timer zipFileWriteTimer{"Writing to zipFile"};
         size_t fileOffset{};
 
-        Eocd eocd{{.entries = centralDirectories_, .comment = {}}};
+        Eocd eocd{{.entries = std::move(centralDirectories_), .comment = {}}};
 
         uint32_t eocdCentralDirSize{};
 
@@ -41,10 +41,8 @@ void ZipFile::serializeTo(std::ofstream &out) {
         eocd.setOffsetOfEocdRecord(fileOffset);
         fileOffset += eocd.serializeTo(out);
 
-        return true;
     }catch (std::exception& e) {
         std::cerr << e.what() << '\n';
-        return false;
     }
 
 }
