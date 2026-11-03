@@ -17,15 +17,21 @@
 
 class ZipFile {
     public:
-    explicit ZipFile(std::string  name):filename_{std::move(name)}{};
-    std::string filename_;
-    void addFile(LocalFileHeader&& fileHeader);
+    explicit ZipFile(std::string  name):filename_{std::move(name)},outStream_{filename_,std::ios::binary}{};
+    void addFile(LocalFileHeader& fileHeader);
 
-    void serializeTo(std::ofstream& out) ;
+    void serialize() ;
+
 
     private:
+    std::string filename_;
+
     std::vector<LocalFileHeader> localFileHeaders_;
     std::vector<CentralDirectoryHeader> centralDirectories_;
+
+    uint64_t fileOffset_{};
+    size_t localFileHeadersCount_{};
+    std::ofstream outStream_;
 
 };
 #endif //ZIP_BOMB_CREATOR_ZIPFILE_H

@@ -6,43 +6,35 @@
 
 #include "Timer.h"
 
-void ZipFile::addFile(LocalFileHeader &&fileHeader) {
+void ZipFile::addFile(LocalFileHeader &fileHeader) {
+    const std::string fileName{fileHeader.getFileName().begin(), fileHeader.getFileName().end()};
+    Timer singleFileWriteTimer{"Writing " + fileName + " to zip file"};
+
     centralDirectories_.push_back(CentralDirectoryHeader::createBasic(fileHeader));
-    localFileHeaders_.push_back(std::move(fileHeader));
+    centralDirectories_.back().setLocalHeaderOffset(fileOffset_);
+    fileOffset_ += fileHeader.serializeTo(outStream_);
 }
 
-void ZipFile::serializeTo(std::ofstream &out) {
+void ZipFile::serialize() {
     try {
-        if (centralDirectories_.empty() || localFileHeaders_.empty() || centralDirectories_.size() != localFileHeaders_.
-        size()) { return; }
+        if (centralDirectories_.empty()) return;
 
         Timer zipFileWriteTimer{"Writing to zipFile"};
-        size_t fileOffset{};
 
-        Eocd eocd{{.entries = std::move(centralDirectories_), .comment = {}}};
+        Eocd eocd{{.entries = centralDirectories_, .comment = {}}};
 
-        uint32_t eocdCentralDirSize{};
+        const uint64_t centralDirStart{fileOffset_};
 
-        for (size_t i{}; i < localFileHeaders_.size(); ++i) {
-            centralDirectories_[i].setLocalHeaderOffset(fileOffset);
-            fileOffset += localFileHeaders_[i].serializeTo(out);
+        eocd.setCentralDirOffset(fileOffset_);
 
-            eocdCentralDirSize += centralDirectories_[i].size();
+        for (auto& centralDirectory : centralDirectories_) {
+            fileOffset_ += centralDirectory.serializeTo(outStream_);
         }
+        eocd.setCentralDirSize(fileOffset_-centralDirStart);
 
-        eocd.setCentralDirOffset(fileOffset);
-
-        eocd.setCentralDirSize(eocdCentralDirSize);
-
-        for (size_t i{}; i < centralDirectories_.size(); ++i) {
-            fileOffset += centralDirectories_[i].serializeTo(out);
-        }
-
-        eocd.setOffsetOfEocdRecord(fileOffset);
-        fileOffset += eocd.serializeTo(out);
-
-    }catch (std::exception& e) {
+        eocd.setOffsetOfEocdRecord(fileOffset_);
+        fileOffset_ += eocd.serializeTo(outStream_);
+    } catch (std::exception &e) {
         std::cerr << e.what() << '\n';
     }
-
 }
