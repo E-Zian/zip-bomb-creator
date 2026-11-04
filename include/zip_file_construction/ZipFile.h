@@ -11,16 +11,21 @@
 #include "LocalFileHeader.h"
 #include "Eocd.h"
 #include "Helper.h"
-
+#include <iostream>
 #include <utility>
 #include <vector>
 
 class ZipFile {
     public:
-    explicit ZipFile(std::string  name):filename_{std::move(name)},outStream_{filename_,std::ios::binary}{};
+    explicit ZipFile(std::string  name):filename_{std::move(name)},outStream_{filename_,std::ios::binary} {
+        if (!outStream_) {
+            std::cout << "Output file failed to open \n";
+            throw std::runtime_error("Output file failed to open");
+        }
+    };
     void addFile(LocalFileHeader& fileHeader);
 
-    void serialize() ;
+    void close() ;
 
 
     private:

@@ -7,7 +7,8 @@
 #include "Timer.h"
 
 void ZipFile::addFile(LocalFileHeader &fileHeader) {
-    const std::string fileName{fileHeader.getFileName().begin(), fileHeader.getFileName().end()};
+    std::vector<uint8_t> fileNameVector{fileHeader.getFileName()};
+    const std::string fileName{fileNameVector.begin(), fileNameVector.end()};
     Timer singleFileWriteTimer{"Writing " + fileName + " to zip file"};
 
     centralDirectories_.push_back(CentralDirectoryHeader::createBasic(fileHeader));
@@ -15,11 +16,11 @@ void ZipFile::addFile(LocalFileHeader &fileHeader) {
     fileOffset_ += fileHeader.serializeTo(outStream_);
 }
 
-void ZipFile::serialize() {
+void ZipFile::close() {
     try {
         if (centralDirectories_.empty()) return;
 
-        Timer zipFileWriteTimer{"Writing to zipFile"};
+        Timer zipFileWriteTimer{"Closing zipFile"};
 
         Eocd eocd{{.entries = centralDirectories_, .comment = {}}};
 

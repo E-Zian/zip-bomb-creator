@@ -3,14 +3,12 @@
 
 #include "../include/zip_file_construction/LocalFileHeader.h"
 #include "Helper.h"
-#include "../include/zip_file_construction/CentralDirectory.h"
 #include "Timer.h"
-#include "zip_file_construction/ZipFile.h"
-#include "deflation/BitWriter.h"
-#include "deflation/HuffmanTable.h"
-#include <iostream>
-
 #include "deflation/Lz77.h"
+#include "zip_file_construction/ZipFile.h"
+
+#include <iostream>
+#include <filesystem>
 
 namespace {
     enum class ByteSizeBaseKB:size_t {
@@ -40,32 +38,38 @@ std::vector<uint8_t> readFile(const std::string &fileName) {
 
 int main() {
     try {
-        const std::string readFileName("test.txt");
-        std::vector<uint8_t> readFileData{readFile(readFileName)};
-        LocalFileHeader readFileHeader { lz77::fixedCompress(readFileName,readFileData)};
-
-
-        Timer totalRuntime{"Total Runtime"};
         std::string zipFileName{"Test.zip"};
+        Timer totalRuntime{"Total Runtime"};
 
-        std::ofstream out(zipFileName, std::ios::binary);
-        if (!out) {
-            std::cout << "Output file failed to open \n";
-            return 1;
+        namespace fs = std::filesystem;
+
+        std::string folderName{"test"};
+        ZipFile zipFile{zipFileName};
+
+        for (const fs::directory_entry& entry : fs::recursive_directory_iterator(folderName,fs::directory_options::skip_permission_denied)) {
+            if (is_regular_file(entry)) {
+                std::string fileName{entry.path().filename().string()};
+                Timer readFileTimer{"Compressing File - "+fileName};
+
+                std::vector<uint8_t> fileData{readFile(fileName)};
+                LocalFileHeader compressedFileHeader { lz77::fixedCompress(fileName,fileData)};
+                zipFile.addFile(compressedFileHeader);
+            }
+
         }
+
+
         // LocalFileHeader bombLfh{};
         // {
         //     Timer localHeaderBomb{"Creating local file header bomb"};
         //     bombLfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSizeBaseKB::GB) * 11));
         // }
         //
-        ZipFile zipFile{zipFileName};
         // zipFile.addFile(std::move(bombLfh));
-        zipFile.addFile(std::move(readFileHeader));
 
         {
-            Timer zipFileSerialization{"Serializing zip file"};
-            zipFile.serializeTo(out);
+            Timer zipFileSerialization{"Closing zip file"};
+            zipFile.close();
         }
 
 
