@@ -28,6 +28,7 @@ namespace helper {
         TB = GB * 1024,
         PB = TB * 1024
     };
+    size_t randomNumber(size_t max);
 }
 
 

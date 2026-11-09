@@ -10,13 +10,12 @@
 class Timer {
     static inline int depth{};
     static std::string indent() { return std::string(depth * 2, ' '); }
+
 public:
     explicit Timer(const std::string_view timerName) : timerName{timerName},
                                                        startTime{std::chrono::steady_clock::now()} {
-
         std::cout << indent() << "> " << timerName << '\n';
         ++depth;
-
     }
 
     ~Timer() {

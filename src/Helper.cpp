@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <random>
 
 void helper::appendBytes16Small(std::vector<uint8_t> &buffer,const uint16_t data) {
     buffer.push_back(data & 0xff);
@@ -46,4 +47,13 @@ bool helper::writeFile(std::ofstream& out, const std::span<uint8_t> data) {
     out.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
 
     return out.good();
+}
+
+
+size_t helper::randomNumber(const size_t max) {
+
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+
+    return gen()%max;
 }

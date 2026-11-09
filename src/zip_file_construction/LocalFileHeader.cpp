@@ -3,27 +3,30 @@
 //
 #include "zip_file_construction/LocalFileHeader.h"
 
-#include <iostream>
-
 #include "factory/PayloadFactory.h"
 #include "Helper.h"
-#include "deflation/BitWriter.h"
 #include "zip_file_construction/Zip64.h"
 #include <span>
 
 #include "Timer.h"
 
 namespace {
-    void repeatInPlace(std::vector<uint8_t> &vector, const size_t n) {
+    void repeatInPlace(std::vector<uint8_t> &vector, const size_t n, const std::optional<size_t>targetSize=std::nullopt) {
         const size_t originalSize{vector.size()};
+        if (targetSize.has_value()) {
+            vector.reserve(targetSize.value());
+
+        }
         vector.resize(vector.size() * n);
 
-        size_t newSize{originalSize};
-        while (newSize < vector.size()) {
-            std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(newSize));
-            newSize += originalSize;
+
+        size_t filledSize{originalSize};
+        while (filledSize < vector.size()) {
+            std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(filledSize));
+            filledSize += originalSize;
         }
     }
+
 }
 
 
@@ -107,6 +110,9 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
         writeFile(out, bombRecipe_->start);
 
         size_t periodSize{bombRecipe_->period.size()};
+
+        size_t totalPeriods{bombRecipe_->numberOfPeriods};
+
         while (bombRecipe_->numberOfPeriods) {
             if (bombRecipe_->numberOfPeriods & 1) {
                 size += periodSize;
@@ -115,7 +121,7 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
 
             bombRecipe_->numberOfPeriods >>= 1;
             periodSize *= 2;
-            repeatInPlace(bombRecipe_->period, 2);
+            repeatInPlace(bombRecipe_->period, 2,totalPeriods);
         }
         size += bombRecipe_->end.size();
 

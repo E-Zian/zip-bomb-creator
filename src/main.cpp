@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <filesystem>
-#include <random>
 #include <algorithm>
 
 namespace {
@@ -20,13 +19,6 @@ namespace {
         PB = TB * 1024
     };
 
-    size_t randomNumber(const size_t max) {
-
-        std::random_device rd;
-        std::mt19937_64 gen(rd());
-
-        return gen()%max;
-    }
 
     std::vector<uint8_t> readFile(const std::string &filePath) {
         std::ifstream in(filePath, std::ios::binary | std::ios::ate);
@@ -63,7 +55,7 @@ int main() {
             fs::recursive_directory_iterator{},
             [](const fs::directory_entry& e){ return e.is_regular_file(); }))};
 
-        size_t bombPlacement {randomNumber(fileCount)};
+        size_t bombPlacement {helper::randomNumber(fileCount)};
 
         size_t nthFileRead{};
         for (const fs::directory_entry& entry : fs::recursive_directory_iterator(folderName,fs::directory_options::skip_permission_denied)) {
