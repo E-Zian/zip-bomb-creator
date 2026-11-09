@@ -1,15 +1,14 @@
 #include <chrono>
-#include <fstream>
 
 #include "../include/zip_file_construction/LocalFileHeader.h"
 #include "Helper.h"
 #include "Timer.h"
 #include "deflation/Lz77.h"
 #include "zip_file_construction/ZipFile.h"
+#include "tui/InputParser.h"
 
 #include <iostream>
 #include <filesystem>
-#include <algorithm>
 
 namespace {
     enum class ByteSizeBaseKB:size_t {
@@ -18,73 +17,111 @@ namespace {
         TB = GB * 1024,
         PB = TB * 1024
     };
-
-
-    std::vector<uint8_t> readFile(const std::string &filePath) {
-        std::ifstream in(filePath, std::ios::binary | std::ios::ate);
-        if (!in) {
-            std::cout << "failed to open Input file : "<<filePath<<" \n";
-            return {};
-        }
-
-        const long long fileSize { in.tellg()};
-
-        std::vector<uint8_t> fileDate(fileSize);
-        in.seekg(0, std::ios::beg);
-
-        in.read(reinterpret_cast<char *>(fileDate.data()), fileSize);
-
-        return fileDate;
-    }
 }
 
+std::optional<size_t> parseBombSize(const std::optional<std::string> &sizeInString, ByteSizeBaseKB byteSize) {
+    if (!sizeInString) return std::nullopt;
+
+    size_t size{};
+
+    auto [ptr, ec] = std::from_chars(sizeInString.value().data(),
+                                     sizeInString.value().data() + sizeInString.value().size(), size);
+    if (ec != std::errc{}) {
+        throw std::runtime_error{"Invalid value given for bomb size "};
+    }
+
+    size *= static_cast<size_t>(byteSize);
+
+    return size;
+}
+
+int main(int argc, const char **argv) {
+    Timer totalRuntime{"Total Runtime"};
+    namespace fs = std::filesystem;
+
+    InputParser inputParser{};
+
+    inputParser.registerFlag(
+        "dir",
+        "The directory of the folder to be zipped, if not provided the programme will zip the current working directory",
+        true);
+    inputParser.registerFlag("help", "Displays the available flags and their corresponding descriptions");
+    inputParser.registerFlag("mb", "Sets the bomb size in mb followed by the size in number, default is 1gb", true);
+    inputParser.registerFlag("gb", "Sets the bomb size in gb followed by the size in number, default is 1gb", true);
+    inputParser.registerFlag("tb", "Sets the bomb size in tb followed by the size in number, default is 1gb", true);
+    inputParser.registerFlag("pb", "Sets the bomb size in pb followed by the size in number, default is 1gb", true);
+    inputParser.registerFlag("name", "Sets the name of the produced zipped file, default is zipBomb.zip", true);
 
 
-int main() {
     try {
-        std::string zipFileName{"Test.zip"};
-        Timer totalRuntime{"Total Runtime"};
+        inputParser.parse(argc, argv);
 
-        namespace fs = std::filesystem;
+        if (bool helpCalled{inputParser.containsInputFlag("help")}; helpCalled || !inputParser.getState()) {
+            inputParser.displayHelp();
+            return 0;
+        }
 
-        std::string folderName{"test"};
+        auto inputName{inputParser.getFlagValue("name")};
+        auto inputPath{inputParser.getFlagValue("dir")};
+        auto inputMbSize{inputParser.getFlagValue("mb")};
+        auto inputGbSize{inputParser.getFlagValue("gb")};
+        auto inputTbSize{inputParser.getFlagValue("tb")};
+        auto inputPbSize{inputParser.getFlagValue("pb")};
+
+
+        std::string zipFileName{inputName.has_value() ? helper::ensureZipExtension(inputName.value()) : "zipBomb.zip"};
+
+        std::string folderPath{inputPath.has_value() ? inputPath.value() : fs::current_path().string()};
+
+        size_t bombSize{(static_cast<size_t>(ByteSizeBaseKB::GB) * 1)};
+
+        if (auto size{parseBombSize(inputMbSize, ByteSizeBaseKB::MB)})bombSize = size.value();
+        if (auto size{parseBombSize(inputGbSize, ByteSizeBaseKB::GB)})bombSize = size.value();
+        if (auto size{parseBombSize(inputTbSize, ByteSizeBaseKB::TB)})bombSize = size.value();
+        if (auto size{parseBombSize(inputPbSize, ByteSizeBaseKB::PB)})bombSize = size.value();
+
+        std::vector<fs::path> files;
+        for (const auto &entry: fs::recursive_directory_iterator(folderPath,
+                                                                 fs::directory_options::skip_permission_denied))
+            if (entry.is_regular_file())
+                files.push_back(entry.path());
+
+        if (files.empty()) {
+            std::cout << "No files found in " << folderPath << '\n';
+            return 0;
+        }
+
         ZipFile zipFile{zipFileName};
 
-        size_t fileCount { static_cast<size_t>(std::count_if(
-            fs::recursive_directory_iterator(folderName, fs::directory_options::skip_permission_denied),
-            fs::recursive_directory_iterator{},
-            [](const fs::directory_entry& e){ return e.is_regular_file(); }))};
-
-        size_t bombPlacement {helper::randomNumber(fileCount)};
+        size_t bombPlacement{helper::randomNumber(files.size())};
 
         size_t nthFileRead{};
-        for (const fs::directory_entry& entry : fs::recursive_directory_iterator(folderName,fs::directory_options::skip_permission_denied)) {
-            if (is_regular_file(entry)) {
-                std::string fileName{entry.path().filename().string()};
-                if (nthFileRead == bombPlacement) {
-                    Timer readFileTimer{"Placing Bomb in File - "+fileName};
-                    LocalFileHeader bombFile {LocalFileHeader::createBomb(fileName, (static_cast<size_t>(ByteSizeBaseKB::GB) * 500))};
-                    zipFile.addFile(bombFile);
-                }else {
-                    Timer readFileTimer{"Compressing File - "+fileName};
-                    std::vector<uint8_t> fileData{readFile(entry.path().string())};
-                    LocalFileHeader compressedFileHeader { lz77::fixedCompress(fileName,fileData)};
-                    zipFile.addFile(compressedFileHeader);
-                }
 
+        for (const fs::path &entry: files) {
+            std::string fileName{entry.filename().string()};
+            if (nthFileRead == bombPlacement) {
+                Timer readFileTimer{"Placing Bomb in File - " + fileName};
+                LocalFileHeader bombFile{
+                    LocalFileHeader::createBomb(fileName, bombSize)
+                };
+                zipFile.addFile(bombFile);
+            } else {
+                Timer readFileTimer{"Compressing File - " + fileName};
+                std::vector<uint8_t> fileData{helper::readFile(entry.string())};
+                LocalFileHeader compressedFileHeader{lz77::fixedCompress(fileName, fileData)};
+                zipFile.addFile(compressedFileHeader);
             }
             ++nthFileRead;
         }
-
 
         {
             Timer zipFileSerialization{"Closing zip file"};
             zipFile.close();
         }
-
-
     } catch (std::exception &e) {
-        std::cout << "exception: " << e.what() << std::endl;
+        std::cout << "exception: " << e.what() << '\n' << std::endl;
+
+        inputParser.displayHelp();
     }
 }
 ;

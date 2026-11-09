@@ -17,6 +17,7 @@ set(sources
         src/deflation/Lz77.cpp
         src/deflation/HuffmanTree.cpp
         src/zip_file_construction/Zip64.cpp
+        src/tui/InputParser.cpp
 
 )
 set(includes
@@ -35,6 +36,7 @@ set(includes
         include/zip_file_construction/Zip64.h
         include/Timer.h
         include/buffer/RingBuffer.h
+        include/tui/InputParser.h
 
 )
 

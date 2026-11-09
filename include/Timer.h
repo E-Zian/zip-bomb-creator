@@ -22,7 +22,7 @@ public:
         --depth;
 
         const auto endTime{std::chrono::steady_clock::now()};
-        std::cout << indent() << "- " << timerName << " duration : " << std::chrono::duration_cast<
+        std::cout << indent() << "- " << timerName << " s : " << std::chrono::duration_cast<
             std::chrono::milliseconds>(endTime - startTime) << '\n';
     }
 

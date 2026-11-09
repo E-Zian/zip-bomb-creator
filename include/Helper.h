@@ -31,6 +31,10 @@ namespace helper {
         PB = TB * 1024
     };
     size_t randomNumber(size_t max);
+
+    std::vector<uint8_t> readFile(const std::string &filePath);
+
+    std::string ensureZipExtension(std::string fileName) ;
 }
 
 

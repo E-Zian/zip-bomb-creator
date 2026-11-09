@@ -69,3 +69,27 @@ size_t helper::randomNumber(const size_t max) {
 
     return gen()%max;
 }
+
+std::vector<uint8_t> helper::readFile(const std::string &filePath) {
+    std::ifstream in(filePath, std::ios::binary | std::ios::ate);
+    if (!in) {
+        std::cout << "failed to open Input file : "<<filePath<<" \n";
+        return {};
+    }
+
+    const long long fileSize { in.tellg()};
+
+    std::vector<uint8_t> fileDate(fileSize);
+    in.seekg(0, std::ios::beg);
+
+    in.read(reinterpret_cast<char *>(fileDate.data()), fileSize);
+
+    return fileDate;
+}
+
+std::string helper::ensureZipExtension(std::string fileName) {
+    if (!fileName.ends_with(".zip"))
+        fileName += ".zip";
+    return fileName;
+}
+
