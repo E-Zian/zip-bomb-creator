@@ -21,6 +21,8 @@ namespace helper {
 
     bool writeFile(std::ofstream& out, std::span<uint8_t> data) ;
 
+    void writeXChunk(std::ofstream& out, std::span<uint8_t> chunkData,size_t totalBytes);
+
     enum class ByteSize:size_t {
         KB = 1024,
         MB = KB * 1024,

@@ -42,11 +42,23 @@ void helper::displayBytes(const std::span<const uint8_t> buffer) {
 }
 
 bool helper::writeFile(std::ofstream& out, const std::span<uint8_t> data) {
-    const auto start {std::chrono::steady_clock::now()};
 
     out.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
 
     return out.good();
+}
+
+void helper::writeXChunk(std::ofstream &out, const std::span<uint8_t> chunkData, const size_t totalBytes) {
+    const size_t chunkSize {chunkData.size()};
+
+    size_t bytesLeft{totalBytes};
+
+
+    while (bytesLeft > 0) {
+        const size_t bytesToWrite{std::min(chunkSize,bytesLeft)};
+        out.write(reinterpret_cast<const char *>(chunkData.data()), static_cast<std::streamsize>(bytesToWrite));
+        bytesLeft -= bytesToWrite;
+    }
 }
 
 

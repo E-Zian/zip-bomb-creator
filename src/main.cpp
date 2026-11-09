@@ -63,7 +63,7 @@ int main() {
                 std::string fileName{entry.path().filename().string()};
                 if (nthFileRead == bombPlacement) {
                     Timer readFileTimer{"Placing Bomb in File - "+fileName};
-                    LocalFileHeader bombFile {LocalFileHeader::createBomb(fileName, (static_cast<size_t>(ByteSizeBaseKB::GB) * 10))};
+                    LocalFileHeader bombFile {LocalFileHeader::createBomb(fileName, (static_cast<size_t>(ByteSizeBaseKB::GB) * 500))};
                     zipFile.addFile(bombFile);
                 }else {
                     Timer readFileTimer{"Compressing File - "+fileName};

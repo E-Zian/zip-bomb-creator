@@ -6,9 +6,10 @@
 #include "factory/PayloadFactory.h"
 #include "Helper.h"
 #include "zip_file_construction/Zip64.h"
+#include "Timer.h"
+
 #include <span>
 
-#include "Timer.h"
 
 namespace {
     void repeatInPlace(std::vector<uint8_t> &vector, const size_t n, const std::optional<size_t>targetSize=std::nullopt) {
@@ -111,17 +112,23 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
 
         size_t periodSize{bombRecipe_->period.size()};
 
-        size_t totalPeriods{bombRecipe_->numberOfPeriods};
+        constexpr size_t maxChunkSize{256 * static_cast<size_t>(ByteSize::MB)};
 
+        std::vector<uint8_t> chunkData{bombRecipe_->period};
+        size_t writeSize{chunkData.size()};
         while (bombRecipe_->numberOfPeriods) {
             if (bombRecipe_->numberOfPeriods & 1) {
                 size += periodSize;
-                writeFile(out, bombRecipe_->period);
+                writeXChunk(out,chunkData,writeSize);
             }
 
             bombRecipe_->numberOfPeriods >>= 1;
             periodSize *= 2;
-            repeatInPlace(bombRecipe_->period, 2,totalPeriods);
+
+            if (chunkData.size()*2 < maxChunkSize) {
+                repeatInPlace(chunkData, 2,maxChunkSize);
+            }
+            writeSize*=2;
         }
         size += bombRecipe_->end.size();
 
