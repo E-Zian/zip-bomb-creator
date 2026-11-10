@@ -5,7 +5,7 @@
 #include <iostream>
 #include <format>
 
-void InputParser::parse(const int argc,const char **argv) {
+bool InputParser::parse(const int argc,const char **argv) {
 
     for (int i = 1; i < argc; i++) {
         if (std::string_view argcView{argv[i]}; argcView.starts_with('-') && checkFlagExists(std::string(argcView.substr(1)))) {
@@ -15,18 +15,18 @@ void InputParser::parse(const int argc,const char **argv) {
                     ++i;
                 }else {
                     std::cout <<  "Required value for "<< flagName <<" not found" << '\n'<< '\n';
-                    return;
+                    return false;
                 }
             }else {
                 setFlagValue(flagName, "true");
             }
         }else {
             std::cout <<  "Invalid flag given : " << argv[i] << '\n'<< '\n';
-            return;
+            return false;
         }
     }
 
-    state_ = true;
+    return true;
 }
 
 void InputParser::registerFlag(const std::string& flagName, const std::string &flagDescription, const bool hasFlagValue) {

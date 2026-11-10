@@ -12,15 +12,11 @@ class InputParser {
     };
 
 public:
-    void parse(int argc, const char** argv);
+    bool parse(int argc, const char** argv);
     void registerFlag(const std::string& flagName, const std::string &flagDescription, bool hasFlagValue = false);
     void displayHelp() const;
 
     [[nodiscard]] std::optional<std::string> getFlagValue(const std::string& flagName) const;
-
-    [[nodiscard]] bool getState() const {
-        return state_;
-    }
 
     [[nodiscard]] bool containsInputFlag(const std::string& flagName) const;
 
@@ -33,7 +29,6 @@ private:
 
     void setFlagValue(const std::string& flagName, const std::string& flagValue);
 
-    bool state_{};
 };
 
 

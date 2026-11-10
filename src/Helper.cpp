@@ -63,7 +63,7 @@ void helper::writeXChunk(std::ofstream &out, const std::span<uint8_t> chunkData,
 
 
 size_t helper::randomNumber(const size_t max) {
-
+    if (max == 0) return 0;
     std::random_device rd;
     std::mt19937_64 gen(rd());
 

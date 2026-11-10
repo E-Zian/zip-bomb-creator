@@ -6,26 +6,15 @@
 #define ZIP_BOMB_CREATOR_TIMER_H
 #include <chrono>
 #include <iostream>
-
+#include <optional>
 class Timer {
     static inline int depth{};
-    static std::string indent() { return std::string(depth * 2, ' '); }
+    static std::string indent();
 
 public:
-    explicit Timer(const std::string_view timerName) : timerName{timerName},
-                                                       startTime{std::chrono::steady_clock::now()} {
-        std::cout << indent() << "> " << timerName << '\n';
-        ++depth;
-    }
+    explicit Timer( std::string_view timerName);
 
-    ~Timer() {
-        --depth;
-
-        const auto endTime{std::chrono::steady_clock::now()};
-        std::cout << indent() << "- " << timerName << " s : " << std::chrono::duration_cast<
-            std::chrono::milliseconds>(endTime - startTime) << '\n';
-    }
-
+    ~Timer();
 private:
     std::string timerName;
     std::chrono::steady_clock::time_point startTime;
