@@ -8,25 +8,28 @@
 #include "deflation/HuffmanTable.h"
 #include <vector>
 
-struct BombPayloadRecipe {
-    std::vector<uint8_t> start;
-    std::vector<uint8_t> period;
-    std::vector<uint8_t> end;
-
-    size_t kbSize{};
-    size_t numberOfPeriods{};
-};
-
-struct CreateBombPayloadResult{
-    BombPayloadRecipe bombRecipe;
-    size_t uncompressedSize{};
-    size_t compressedSize{};
-    size_t crc32{};
-};
 
 namespace payloadFactory {
+
+    struct BombPayloadRecipe {
+        std::vector<uint8_t> start;
+        std::vector<uint8_t> period;
+        std::vector<uint8_t> end;
+
+        size_t kbSize{};
+        size_t numberOfPeriods{};
+    };
+
+    struct CreateBombPayloadResult{
+        BombPayloadRecipe bombRecipe;
+        size_t uncompressedSize{};
+        size_t compressedSize{};
+        size_t crc32{};
+    };
+
     CreateBombPayloadResult createFixedBombPayload(size_t size);
 
+    CreateBombPayloadResult createDynamicBombPayload(size_t size);
 }
 
 

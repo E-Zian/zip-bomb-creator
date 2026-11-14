@@ -28,9 +28,9 @@ public:
         uint64_t uncompressedSize;
         std::vector<uint8_t> fileName;
         Zip64ExtraBlock extraField;
-        std::optional<BombPayloadRecipe> bombRecipe{};
+        std::optional<payloadFactory::BombPayloadRecipe> bombRecipe{};
         std::vector<uint8_t> data{};
-        std::optional<uint32_t> crc32;
+        std::optional<uint64_t> crc32;
     };
 
     enum class Version :uint16_t {
@@ -113,7 +113,7 @@ private:
     std::vector<uint8_t> fileName_{};
     Zip64ExtraBlock extraField_{};
 
-    std::optional<BombPayloadRecipe> bombRecipe_{};
+    std::optional<payloadFactory::BombPayloadRecipe> bombRecipe_{};
     std::vector<uint8_t> data_{};
 };
 

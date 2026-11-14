@@ -157,7 +157,7 @@ LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string 
 }
 
 LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t size) {
-    auto [recipe,uncompressedSize,compressedSize,crc32]{payloadFactory::createFixedBombPayload(size)};
+    auto [recipe,uncompressedSize,compressedSize,crc32]{payloadFactory::createDynamicBombPayload(size)};
     FileHeaderConstructConfig config{};
 
 
