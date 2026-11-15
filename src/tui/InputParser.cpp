@@ -59,9 +59,9 @@ void InputParser::setFlagValue(const std::string &flagName, const std::string &f
 void InputParser::displayHelp() const {
     for (const auto& [flagName, flagDescription] : registeredFlags_) {
         std::string label { std::format("-{}", flagName)};
-        std::cout << std::format("  {:<12}{:<50}{}\n",
+        std::cout << std::format("  {:<12}{}{}\n",
             label,
             flagDescription.flagDescription,
-            flagDescription.hasFlagValue ? "[requires value]" : "");
+            flagDescription.hasFlagValue ? " [requires value]" : "");
     }
 }

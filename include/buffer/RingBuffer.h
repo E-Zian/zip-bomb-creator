@@ -25,7 +25,8 @@ public:
         std::copy_n(data.begin(), firstChunk, buffer_.begin() + posEntry_);
 
         if (const size_t secondChunk{data.size() - firstChunk}; secondChunk > 0) {
-            std::copy_n(data.begin() + firstChunk, secondChunk, buffer_.begin());
+            std::copy_n(data.begin() + static_cast<
+                long long>(firstChunk), secondChunk, buffer_.begin());
         }
 
         posEntry_ = (posEntry_ + data.size()) % length;
@@ -36,11 +37,11 @@ public:
         return buffer_[index % length];
     }
 
-    bool isIndexValid(const size_t index) const {
+    [[nodiscard]] bool isIndexValid(const size_t index) const {
         return index < totalWritten_ && index >= totalWritten_ - std::min(totalWritten_, static_cast<size_t>(length));
     }
 
-    size_t getTotalWritten() const {
+    [[nodiscard]] size_t getTotalWritten() const {
         return totalWritten_;
     }
 

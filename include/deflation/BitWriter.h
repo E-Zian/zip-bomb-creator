@@ -24,11 +24,13 @@ class BitWriter {
     }
 
     [[nodiscard]] size_t size() const {
-        return bits_.size();
+        return byteBuffer_.size();
     }
 
+    void fillByte();
+
 private:
-    std::vector<uint8_t> bits_{};
+    std::vector<uint8_t> byteBuffer_{};
     uint8_t bitBuffer_{};
     int bitCount_{};
 };

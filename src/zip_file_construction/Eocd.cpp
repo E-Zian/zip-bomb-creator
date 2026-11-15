@@ -5,7 +5,7 @@
 #include "../../include/zip_file_construction/Eocd.h"
 #include "Helper.h"
 
-Eocd::Eocd(const EocdConstructConfig &config) : entriesOnThisDisk_{static_cast<uint16_t>(config.entries.size())},
+Eocd::Eocd(const EocdConstructConfig &config) : entriesOnThisDisk_{config.entries.size()},
                                                 totalEntries_{entriesOnThisDisk_}, centralDirSize_{},
                                                 comment_{config.comment},
                                                 versionMadeBy_{

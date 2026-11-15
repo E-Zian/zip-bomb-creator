@@ -206,3 +206,4 @@ LocalFileHeader LocalFileHeader::createBasic(std::string fileName, std::vector<u
 
     return LocalFileHeader{config};
 }
+

@@ -22,7 +22,7 @@ void BitWriter::add(uint32_t value, int numOfBits) {
         bitCount_ += take;
 
         if (bitCount_ == 8) {
-            bits_.push_back(bitBuffer_);
+            byteBuffer_.push_back(bitBuffer_);
             bitCount_ = 0;
             bitBuffer_ = 0;
         }
@@ -31,9 +31,15 @@ void BitWriter::add(uint32_t value, int numOfBits) {
 
 std::vector<uint8_t> BitWriter::release() {
     if (bitCount_ > 0) {
-    bits_.push_back(bitBuffer_);
+    byteBuffer_.push_back(bitBuffer_);
         bitBuffer_ = 0;
         bitCount_  = 0;
     }
-    return std::move(bits_);
+    return std::move(byteBuffer_);
+}
+
+void BitWriter::fillByte() {
+    byteBuffer_.push_back(bitBuffer_);
+    bitBuffer_ = 0;
+    bitCount_  = 0;
 }
