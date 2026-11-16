@@ -19,7 +19,7 @@ set(sources
         src/zip_file_construction/Zip64.cpp
         src/tui/InputParser.cpp
         src/Timer.cpp
-
+        src/UniqueNameGenerator.cpp
 )
 set(includes
         include/zip_file_construction/LocalFileHeader.h
@@ -38,6 +38,8 @@ set(includes
         include/Timer.h
         include/buffer/RingBuffer.h
         include/tui/InputParser.h
+        include/UniqueNameGenerator.h
+
 
 )
 
