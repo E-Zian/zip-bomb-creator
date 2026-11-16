@@ -60,7 +60,7 @@ public:
 
     static LocalFileHeader createBasic(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,uint32_t crc32);
 
-    static LocalFileHeader createNonFinal(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,uint32_t crc32);
+    static LocalFileHeader createNonFinal(std::string fileName,);
 
     [[nodiscard]] uint16_t getVersion() const {
         return version_;

@@ -4,20 +4,22 @@
 
 #ifndef ZIP_BOMB_CREATOR_NAMEGENERATOR_H
 #define ZIP_BOMB_CREATOR_NAMEGENERATOR_H
+#include <cstdint>
 #include <string>
-#include <utility>
 
 class UniqueNameGenerator {
-    public:
+    static constexpr std::string_view ALPHABETS {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
-    UniqueNameGenerator(std::string&& name, const size_t maxVariations):name_{std::move( name )}, maxVariations_{ maxVariations } {}
+    public:
+    explicit UniqueNameGenerator(size_t maxVariations);
+    std::string getName();
+    [[nodiscard]] size_t getSize() const;
 
 private:
-    std::string name_;
     size_t maxVariations_{};
-    size_t currentVariation_{};
+    size_t maxNumberIterations_{};
+    size_t currentNumIteration_{};
+    uint8_t alphaIteration_{};
 
-    [[nodiscard]] int getVariationDecimalPlaces() const;
-    std::string getName();
 };
 #endif //ZIP_BOMB_CREATOR_NAMEGENERATOR_H

@@ -3,23 +3,37 @@
 //
 #include "UniqueNameGenerator.h"
 #include <format>
-int UniqueNameGenerator::getVariationDecimalPlaces() const {
-    size_t tempMax{maxVariations_};
-    int count{};
-
-    while (tempMax > 0) {
-        ++count;
-        tempMax >>= 1;
+namespace {
+    int getDecimalPlaces(size_t num)  {
+        int count{};
+        while (num > 0) {
+            ++count;
+            num /= 1;
+        }
+        return count;
     }
+}
 
-    return count;
+UniqueNameGenerator::UniqueNameGenerator(const size_t maxVariations)
+    : maxVariations_{maxVariations} {
+    for (size_t i {} ; i < getDecimalPlaces(maxVariations_/ALPHABETS.size());i++ ) {
+        maxNumberIterations_ = (maxNumberIterations_* 10)+9;
+    }
 }
 
 std::string UniqueNameGenerator::getName() {
-    ++currentVariation_;
-    if (currentVariation_ > maxVariations_) {
-        throw std::runtime_error("NameGenerator::getName(): Maximum number of variables reached.");
+    ++currentNumIteration_;
+    if (currentNumIteration_ >= maxNumberIterations_) {
+        alphaIteration_+=1;
+        currentNumIteration_ = 0;
     }
-    std::string name{name_+std::format("{:0{}}",currentVariation_,getVariationDecimalPlaces())};
+    if (alphaIteration_ >= ALPHABETS.size()) {
+        throw std::runtime_error("Exceeded unique name variation");
+    }
+    std::string name{ALPHABETS[alphaIteration_] + std::format("{:0{}}",currentNumIteration_ , getDecimalPlaces(maxNumberIterations_))};
     return name;
+}
+
+size_t UniqueNameGenerator::getSize() const {
+    return 1 + getDecimalPlaces(maxNumberIterations_);
 };
