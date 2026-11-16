@@ -10,6 +10,8 @@
 
 #include <span>
 
+#include "deflation/BitWriter.h"
+
 
 namespace {
     void repeatInPlace(std::vector<uint8_t> &vector, const size_t n, const std::optional<size_t>targetSize=std::nullopt) {
@@ -26,6 +28,10 @@ namespace {
             std::copy_n(vector.begin(), originalSize, vector.begin() + static_cast<long long>(filledSize));
             filledSize += originalSize;
         }
+    }
+
+    size_t sumTo(const size_t firstValue, const size_t lastValue, const size_t totalInterval) {
+        return (totalInterval* (firstValue+lastValue)/2);
     }
 
 }
@@ -203,6 +209,50 @@ LocalFileHeader LocalFileHeader::createBasic(std::string fileName, std::vector<u
     config.extraField = {};
     config.data = std::move(compressedData);
     config.crc32 = crc32;
+
+    return LocalFileHeader{config};
+}
+
+LocalFileHeader LocalFileHeader::createNonFinalZip64(UniqueNameGenerator& nameGenerator,const size_t remainingHeaders,const size_t bombUncompressedSize,const size_t bombCompressedSize) {
+    FileHeaderConstructConfig config{};
+    constexpr uint8_t baseLfhSize {30};
+    constexpr uint8_t extraFieldSize {20};
+
+    std::string fileName{nameGenerator.getName()};
+
+    const uint16_t lfhSize {static_cast<uint16_t>(baseLfhSize + fileName.size()+extraFieldSize) };
+
+    BitWriter writer{};
+    writer.add(HuffmanTable::BFINAL::NO, 1);
+    writer.add(HuffmanTable::BTYPE::STORED, 2);
+    writer.alignToByte();
+
+    const uint16_t len{lfhSize};
+    writer.add(len,16);
+    writer.add(~len & 0xFFFF,16);
+
+    const size_t compressedSize {sumTo(1,remainingHeaders,len)+bombCompressedSize};
+    const size_t unCompressedSize {sumTo(1,remainingHeaders,len)+bombUncompressedSize};
+
+    if (unCompressedSize >= 0xFFFFFFFFULL || compressedSize >= 0xFFFFFFFFULL) {
+        config.version = static_cast<uint16_t>(Version::ZIP64);
+    } else {
+        config.version = static_cast<uint16_t>(Version::DEFLATE);
+    }
+
+    config.flags = 0;
+    config.compressionMethod = static_cast<uint16_t>(Compression::DEFLATE);
+    config.modTime = 0;
+    config.modDate = 0;
+
+    config.compressedSize = compressedSize;
+    config.uncompressedSize = unCompressedSize;
+    config.fileName.assign(fileName.begin(), fileName.end());
+    config.extraField = {};
+    config.data = writer.release();
+
+    // need find out how to calculate this shit
+    // config.crc32 = crc32;
 
     return LocalFileHeader{config};
 }

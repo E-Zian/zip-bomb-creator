@@ -6,6 +6,7 @@
 #define ZIP_BOMB_CREATOR_LOCALFILEHEADER_H
 
 #include "Crc32.h"
+#include "UniqueNameGenerator.h"
 #include "zip_file_construction/Zip64.h"
 #include <cstdint>
 #include <optional>
@@ -60,7 +61,7 @@ public:
 
     static LocalFileHeader createBasic(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,uint32_t crc32);
 
-    static LocalFileHeader createNonFinal(std::string fileName,);
+    static LocalFileHeader createNonFinalZip64(UniqueNameGenerator& nameGenerator,size_t remainingHeaders,size_t bombUncompressedSize,size_t bombCompressedSize);
 
     [[nodiscard]] uint16_t getVersion() const {
         return version_;

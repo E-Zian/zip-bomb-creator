@@ -38,7 +38,7 @@ std::vector<uint8_t> BitWriter::release() {
     return std::move(byteBuffer_);
 }
 
-void BitWriter::fillByte() {
+void BitWriter::alignToByte() {
     byteBuffer_.push_back(bitBuffer_);
     bitBuffer_ = 0;
     bitCount_  = 0;

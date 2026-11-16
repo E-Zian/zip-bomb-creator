@@ -27,7 +27,7 @@ class BitWriter {
         return byteBuffer_.size();
     }
 
-    void fillByte();
+    void alignToByte();
 
 private:
     std::vector<uint8_t> byteBuffer_{};

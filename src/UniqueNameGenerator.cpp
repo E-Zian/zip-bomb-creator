@@ -24,7 +24,7 @@ UniqueNameGenerator::UniqueNameGenerator(const size_t maxVariations)
 std::string UniqueNameGenerator::getName() {
     ++currentNumIteration_;
     if (currentNumIteration_ >= maxNumberIterations_) {
-        alphaIteration_+=1;
+        alphaIteration_ += 1;
         currentNumIteration_ = 0;
     }
     if (alphaIteration_ >= ALPHABETS.size()) {

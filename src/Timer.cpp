@@ -3,7 +3,7 @@
 //
 #include "Timer.h"
 
-std::string Timer::indent() { return std::string(depth * 2, '  '); }
+std::string Timer::indent() { return std::string(depth * 2, ' '); }
 
 Timer::Timer(const std::string_view timerName) : timerName{timerName},
                                                        startTime{std::chrono::steady_clock::now()} {
