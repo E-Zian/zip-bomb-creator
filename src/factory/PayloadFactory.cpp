@@ -54,8 +54,8 @@ payloadFactory::CreateBombPayloadResult payloadFactory::createFixedBombPayload(c
     const long long periodStart{((headerBitLength + bytesTillRepeat * 8) / 8)};
 
     const std::vector<uint8_t> start{all.begin(), all.begin() + periodStart};
-    std::vector<uint8_t> period{all.begin() + periodStart, all.begin() + periodStart + bytesTillRepeat};
-    std::vector<uint8_t> end{all.begin() + periodStart + bytesTillRepeat, all.end()};
+    const std::vector<uint8_t> period{all.begin() + periodStart, all.begin() + periodStart + bytesTillRepeat};
+    const std::vector<uint8_t> end{all.begin() + periodStart + bytesTillRepeat, all.end()};
 
 
     const size_t totalIterations = 4 * size;
@@ -91,7 +91,7 @@ payloadFactory::CreateBombPayloadResult payloadFactory::createFixedBombPayload(c
         .bombRecipe = {
             .start = start, .period = period, .end = end, .kbSize = size, .numberOfPeriods = remainingPeriods
         },
-        .uncompressedSize = uncompressedSize, .compressedSize = compressedSize, .crc32 = BombCrc32.getCrc32()
+        .uncompressedSize = uncompressedSize, .compressedSize = compressedSize, .crc32 = BombCrc32
     };
 }
 
@@ -231,6 +231,6 @@ payloadFactory::CreateBombPayloadResult payloadFactory::createDynamicBombPayload
         .bombRecipe = {
             .start = start, .period = period, .end = end, .kbSize = size, .numberOfPeriods = remainingPeriods
         },
-        .uncompressedSize = uncompressedSize, .compressedSize = compressedSize, .crc32 = BombCrc32.getCrc32()
+        .uncompressedSize = uncompressedSize, .compressedSize = compressedSize, .crc32 = BombCrc32
     };
 }

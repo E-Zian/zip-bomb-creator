@@ -8,6 +8,8 @@
 #include "deflation/HuffmanTable.h"
 #include <vector>
 
+#include "zip_file_construction/Crc32.h"
+
 
 namespace payloadFactory {
 
@@ -24,7 +26,7 @@ namespace payloadFactory {
         BombPayloadRecipe bombRecipe;
         size_t uncompressedSize{};
         size_t compressedSize{};
-        size_t crc32{};
+        Crc32 crc32{};
     };
 
     CreateBombPayloadResult createFixedBombPayload(size_t size);

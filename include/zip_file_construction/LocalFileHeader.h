@@ -28,10 +28,9 @@ public:
         uint64_t compressedSize;
         uint64_t uncompressedSize;
         std::vector<uint8_t> fileName;
-        Zip64ExtraBlock extraField;
         std::optional<payloadFactory::BombPayloadRecipe> bombRecipe{};
         std::vector<uint8_t> data{};
-        std::optional<uint64_t> crc32;
+        std::optional<Crc32> crc32;
     };
 
     enum class Version :uint16_t {
@@ -59,9 +58,11 @@ public:
 
     static LocalFileHeader createBomb(std::string fileName,size_t size);
 
-    static LocalFileHeader createBasic(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,uint32_t crc32);
+    static LocalFileHeader createBasic(std::string fileName,std::vector<uint8_t>&& compressedData, size_t compressedSize, size_t uncompressedSize,Crc32 crc32);
 
-    static LocalFileHeader createNonFinalZip64(UniqueNameGenerator& nameGenerator,size_t remainingHeaders,size_t bombUncompressedSize,size_t bombCompressedSize);
+    static LocalFileHeader createNonFinalZip64(UniqueNameGenerator& nameGenerator, const LocalFileHeader& priorFileHeader);
+
+    [[nodiscard]] std::vector<uint8_t> getHeaderBytes() const;
 
     [[nodiscard]] uint16_t getVersion() const {
         return version_;
@@ -84,8 +85,13 @@ public:
     }
 
     [[nodiscard]] uint32_t getCrc32() const {
+        return crc32_.getCrc32();
+    }
+
+    [[nodiscard]] Crc32 getCrc32Object() const {
         return crc32_;
     }
+
 
     [[nodiscard]] uint64_t getCompressedSize() const {
         return compressedSize_;
@@ -99,22 +105,17 @@ public:
         return fileName_;
     }
 
-    [[nodiscard]] std::vector<uint8_t> getExtraField() const {
-        return extraField_.data;
-    }
-
 private:
     uint16_t version_{};
     uint16_t flags_{};
     uint16_t compressionMethod_{};
     uint16_t modTime_{};
     uint16_t modDate_{};
-    uint32_t crc32_{};
+    Crc32 crc32_{};
     uint64_t compressedSize_{};
     uint64_t uncompressedSize_{};
 
     std::vector<uint8_t> fileName_{};
-    Zip64ExtraBlock extraField_{};
 
     std::optional<payloadFactory::BombPayloadRecipe> bombRecipe_{};
     std::vector<uint8_t> data_{};

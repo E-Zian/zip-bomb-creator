@@ -8,7 +8,7 @@ namespace {
         int count{};
         while (num > 0) {
             ++count;
-            num /= 1;
+            num /= 10;
         }
         return count;
     }
@@ -21,12 +21,20 @@ UniqueNameGenerator::UniqueNameGenerator(const size_t maxVariations)
     }
 }
 
-std::string UniqueNameGenerator::getName() {
+std::string UniqueNameGenerator::createName() {
     ++currentNumIteration_;
     if (currentNumIteration_ >= maxNumberIterations_) {
         alphaIteration_ += 1;
         currentNumIteration_ = 0;
     }
+    if (alphaIteration_ >= ALPHABETS.size()) {
+        throw std::runtime_error("Exceeded unique name variation");
+    }
+    std::string name{ALPHABETS[alphaIteration_] + std::format("{:0{}}",currentNumIteration_ , getDecimalPlaces(maxNumberIterations_))};
+    return name;
+}
+
+std::string UniqueNameGenerator::getName() {
     if (alphaIteration_ >= ALPHABETS.size()) {
         throw std::runtime_error("Exceeded unique name variation");
     }

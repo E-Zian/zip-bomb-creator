@@ -122,5 +122,5 @@ LocalFileHeader lz77::fixedCompress(const std::string_view fileName,std::span<ui
     }
     crc.computeCrc32();
 
-    return LocalFileHeader::createBasic(std::string(fileName),std::move(compressedBytes),compressedSize,uncompressedSize,crc.getCrc32());
+    return LocalFileHeader::createBasic(std::string(fileName),std::move(compressedBytes),compressedSize,uncompressedSize,crc);
 }

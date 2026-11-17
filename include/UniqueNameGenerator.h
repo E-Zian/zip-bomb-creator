@@ -8,11 +8,15 @@
 #include <string>
 
 class UniqueNameGenerator {
-    static constexpr std::string_view ALPHABETS {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+    static constexpr std::string_view ALPHABETS{"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
-    public:
+public:
     explicit UniqueNameGenerator(size_t maxVariations);
+
+    std::string createName();
+
     std::string getName();
+
     [[nodiscard]] size_t getSize() const;
 
 private:
@@ -20,6 +24,5 @@ private:
     size_t maxNumberIterations_{};
     size_t currentNumIteration_{};
     uint8_t alphaIteration_{};
-
 };
 #endif //ZIP_BOMB_CREATOR_NAMEGENERATOR_H

@@ -7,10 +7,10 @@
 #include "Helper.h"
 #include "zip_file_construction/Zip64.h"
 #include "Timer.h"
+#include "deflation/BitWriter.h"
 
 #include <span>
 
-#include "deflation/BitWriter.h"
 
 
 namespace {
@@ -29,10 +29,10 @@ namespace {
             filledSize += originalSize;
         }
     }
-
-    size_t sumTo(const size_t firstValue, const size_t lastValue, const size_t totalInterval) {
-        return (totalInterval* (firstValue+lastValue)/2);
-    }
+    //
+    // size_t sumTo(const size_t firstValue, const size_t lastValue, const size_t totalInterval) {
+    //     return (totalInterval* (firstValue+lastValue)/2);
+    // }
 
 }
 
@@ -47,7 +47,6 @@ LocalFileHeader::LocalFileHeader(FileHeaderConstructConfig &config) : version_{c
                                                                       compressedSize_{config.compressedSize},
                                                                       uncompressedSize_{config.uncompressedSize},
                                                                       fileName_{config.fileName},
-                                                                      extraField_{config.extraField},
                                                                       bombRecipe_{config.bombRecipe},
                                                                       data_(std::move(config.data)) {
     if (config.crc32.has_value()) {
@@ -58,7 +57,7 @@ LocalFileHeader::LocalFileHeader(FileHeaderConstructConfig &config) : version_{c
             crc.update(byte);
         }
         crc.computeCrc32();
-        crc32_ = crc.getCrc32();
+        crc32_ = crc;
     }
 }
 
@@ -66,39 +65,7 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
     using namespace helper;
     size_t size{};
 
-    std::vector<uint8_t> serialized;
-    appendBytes32Small(serialized, signature);
-    appendBytes16Small(serialized, version_);
-    appendBytes16Small(serialized, flags_);
-    appendBytes16Small(serialized, compressionMethod_);
-    appendBytes16Small(serialized, modTime_);
-    appendBytes16Small(serialized, modDate_);
-
-    appendBytes32Small(serialized, crc32_);
-
-    const bool useZip64 = (uncompressedSize_ >= 0xFFFFFFFFULL || compressedSize_ >= 0xFFFFFFFFULL);
-    if (useZip64) {
-        appendBytes32Small(serialized, 0xFFFFFFFF);
-        appendBytes32Small(serialized, 0xFFFFFFFF);
-
-        extraField_.id = Zip64ExtraBlock::ZIP64_EXTENDED_INFO;
-        appendBytes64Small(extraField_.data, uncompressedSize_);
-        appendBytes64Small(extraField_.data, compressedSize_);
-    } else {
-        appendBytes32Small(serialized, compressedSize_);
-        appendBytes32Small(serialized, uncompressedSize_);
-    }
-
-
-    appendBytes16Small(serialized, static_cast<uint16_t>(fileName_.size()));
-    appendBytes16Small(serialized, static_cast<uint16_t>(extraField_.size()));
-
-    serialized.insert(serialized.end(), fileName_.begin(), fileName_.end());
-
-    if (useZip64) {
-        std::vector<uint8_t> serializedExtraField{extraField_.serialize()};
-        serialized.insert(serialized.end(), serializedExtraField.begin(), serializedExtraField.end());
-    }
+    std::vector<uint8_t> serialized {getHeaderBytes()};
 
     size += serialized.size();
 
@@ -155,7 +122,6 @@ LocalFileHeader LocalFileHeader::createStored(std::string fileName, std::string 
     config.compressedSize = static_cast<uint32_t>(data.size());
     config.uncompressedSize = static_cast<uint32_t>(data.size());
     config.fileName.assign(fileName.begin(), fileName.end());
-    config.extraField = {};
 
     config.data.assign(data.begin(), data.end());
 
@@ -180,7 +146,6 @@ LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t s
     config.compressedSize = compressedSize;
     config.uncompressedSize = uncompressedSize;
     config.fileName.assign(fileName.begin(), fileName.end());
-    config.extraField = {};
 
     config.crc32 = crc32;
     config.bombRecipe = recipe;
@@ -190,7 +155,7 @@ LocalFileHeader LocalFileHeader::createBomb(std::string fileName, const size_t s
 }
 
 LocalFileHeader LocalFileHeader::createBasic(std::string fileName, std::vector<uint8_t> &&compressedData,
-                                             const size_t compressedSize, const size_t uncompressedSize,uint32_t crc32) {
+                                             const size_t compressedSize, const size_t uncompressedSize,Crc32 crc32) {
     FileHeaderConstructConfig config{};
 
     if (uncompressedSize >= 0xFFFFFFFFULL || compressedSize >= 0xFFFFFFFFULL) {
@@ -206,33 +171,40 @@ LocalFileHeader LocalFileHeader::createBasic(std::string fileName, std::vector<u
     config.compressedSize = compressedSize;
     config.uncompressedSize = uncompressedSize;
     config.fileName.assign(fileName.begin(), fileName.end());
-    config.extraField = {};
     config.data = std::move(compressedData);
     config.crc32 = crc32;
 
     return LocalFileHeader{config};
 }
 
-LocalFileHeader LocalFileHeader::createNonFinalZip64(UniqueNameGenerator& nameGenerator,const size_t remainingHeaders,const size_t bombUncompressedSize,const size_t bombCompressedSize) {
+LocalFileHeader LocalFileHeader::createNonFinalZip64(UniqueNameGenerator& nameGenerator, const LocalFileHeader& priorFileHeader) {
     FileHeaderConstructConfig config{};
-    constexpr uint8_t baseLfhSize {30};
-    constexpr uint8_t extraFieldSize {20};
 
-    std::string fileName{nameGenerator.getName()};
+    std::string fileName{nameGenerator.createName()};
 
-    const uint16_t lfhSize {static_cast<uint16_t>(baseLfhSize + fileName.size()+extraFieldSize) };
+    const std::vector<uint8_t> priorHeaderBytes{priorFileHeader.getHeaderBytes()};
+
+    Crc32 crc {};
+
+    for (const auto& bytes : priorHeaderBytes) {
+        crc.update(bytes);
+    }
+    crc.computeCrc32();
+    crc.combine(priorFileHeader.getCrc32Object());
 
     BitWriter writer{};
     writer.add(HuffmanTable::BFINAL::NO, 1);
     writer.add(HuffmanTable::BTYPE::STORED, 2);
     writer.alignToByte();
 
-    const uint16_t len{lfhSize};
+    const uint16_t len{static_cast<uint16_t>(priorHeaderBytes.size())};
     writer.add(len,16);
     writer.add(~len & 0xFFFF,16);
 
-    const size_t compressedSize {sumTo(1,remainingHeaders,len)+bombCompressedSize};
-    const size_t unCompressedSize {sumTo(1,remainingHeaders,len)+bombUncompressedSize};
+    constexpr size_t headerOverhead {5};
+
+    const size_t compressedSize {priorFileHeader.getCompressedSize()+len+headerOverhead};
+    const size_t unCompressedSize {priorFileHeader.getUncompressedSize()+len};
 
     if (unCompressedSize >= 0xFFFFFFFFULL || compressedSize >= 0xFFFFFFFFULL) {
         config.version = static_cast<uint16_t>(Version::ZIP64);
@@ -248,12 +220,52 @@ LocalFileHeader LocalFileHeader::createNonFinalZip64(UniqueNameGenerator& nameGe
     config.compressedSize = compressedSize;
     config.uncompressedSize = unCompressedSize;
     config.fileName.assign(fileName.begin(), fileName.end());
-    config.extraField = {};
     config.data = writer.release();
 
-    // need find out how to calculate this shit
-    // config.crc32 = crc32;
+    config.crc32 = crc;
 
     return LocalFileHeader{config};
+}
+
+std::vector<uint8_t> LocalFileHeader::getHeaderBytes() const{
+    using namespace helper;
+
+    std::vector<uint8_t> headerBytes;
+    headerBytes.reserve(30);
+
+    appendBytes32Small(headerBytes, signature);
+    appendBytes16Small(headerBytes, version_);
+    appendBytes16Small(headerBytes, flags_);
+    appendBytes16Small(headerBytes, compressionMethod_);
+    appendBytes16Small(headerBytes, modTime_);
+    appendBytes16Small(headerBytes, modDate_);
+
+    appendBytes32Small(headerBytes, crc32_.getCrc32());
+    Zip64ExtraBlock extraField{};
+
+    const bool useZip64 = (uncompressedSize_ >= 0xFFFFFFFFULL || compressedSize_ >= 0xFFFFFFFFULL);
+    if (useZip64) {
+        appendBytes32Small(headerBytes, 0xFFFFFFFF);
+        appendBytes32Small(headerBytes, 0xFFFFFFFF);
+        extraField.id = Zip64ExtraBlock::ZIP64_EXTENDED_INFO;
+        appendBytes64Small(extraField.data, uncompressedSize_);
+        appendBytes64Small(extraField.data, compressedSize_);
+    } else {
+        appendBytes32Small(headerBytes, compressedSize_);
+        appendBytes32Small(headerBytes, uncompressedSize_);
+    }
+
+
+    appendBytes16Small(headerBytes, static_cast<uint16_t>(fileName_.size()));
+    appendBytes16Small(headerBytes, static_cast<uint16_t>(extraField.size()));
+
+    headerBytes.insert(headerBytes.end(), fileName_.begin(), fileName_.end());
+
+    if (useZip64) {
+        std::vector<uint8_t> serializedExtraField{extraField.serialize()};
+        headerBytes.insert(headerBytes.end(), serializedExtraField.begin(), serializedExtraField.end());
+    }
+
+    return headerBytes;
 }
 

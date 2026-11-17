@@ -8,7 +8,7 @@
 #include <cstdint>
 struct Crc32 {
     uint32_t state{0xFFFFFFFF};
-    const uint32_t polynomial{0xEDB88320};
+    static constexpr uint32_t polynomial{0xEDB88320};
 
     uint32_t crc32Value{};
 
@@ -20,7 +20,6 @@ struct Crc32 {
     [[nodiscard]] uint32_t getCrc32() const;
 
     void computeCrc32();
-
 
     Crc32& combine(const Crc32 &b);
     [[nodiscard]] uint32_t advanceValue(uint32_t crc,  size_t bits) const ;
