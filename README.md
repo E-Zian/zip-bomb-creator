@@ -98,6 +98,18 @@ size to `100 GB` and overlappingHeaders to 100,000.
 >Always prioritize a higher overlappingHeaders value rather than increasing the 
 bomb size, as significantly increasing the bomb size can reduce the overall 
 compression ratio.
+
+The given example creates a zip file of sized ~100 MB which unzips to 1 PB, a better ratio could be found but this is solely for display purposes
+
+<img width="1002" height="52" alt="image" src="https://github.com/user-attachments/assets/aeb81238-5a9c-4127-a4a9-3b5fd321d6b2" />
+<img width="1123" height="935" alt="image" src="https://github.com/user-attachments/assets/5a22d2b1-6e59-4f5a-b20f-c54e2736ccf9" />
+
+>This is 1000 overlapping headers for a single GB bomb size, which results in ~1000 KB unzip to a TB
+>
+<img width="965" height="25" alt="image" src="https://github.com/user-attachments/assets/eb6e90ba-2676-4f8e-a3f2-74161751d256" />
+<img width="1097" height="740" alt="image" src="https://github.com/user-attachments/assets/e16f00e3-557e-412c-b0aa-05d87c1070cc" />
+
+
 ## Author's Note
 
 For some reason I thought this was going to be a quick funny project. It was not quick
