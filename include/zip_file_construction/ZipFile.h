@@ -35,7 +35,6 @@ class ZipFile {
     std::vector<CentralDirectoryHeader> centralDirectories_;
 
     uint64_t fileOffset_{};
-    size_t localFileHeadersCount_{};
     std::ofstream outStream_;
 
 };

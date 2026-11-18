@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] size_t getSize() const;
 
+    std::string getFolderName();
+
 private:
     size_t maxVariations_{};
     size_t maxNumberIterations_{};

@@ -63,11 +63,10 @@ LocalFileHeader::LocalFileHeader(FileHeaderConstructConfig &config) : version_{c
 
 size_t LocalFileHeader::serializeTo(std::ofstream &out) {
     using namespace helper;
-    size_t size{};
 
     std::vector<uint8_t> serialized {getHeaderBytes()};
 
-    size += serialized.size();
+    size_t size{serialized.size()};
 
     writeFile(out, serialized);
 

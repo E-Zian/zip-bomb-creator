@@ -158,17 +158,18 @@ int main(int argc, const char **argv) {
             std::vector<LocalFileHeader> overlappingLocalFileHeaders;
             overlappingLocalFileHeaders.reserve(overLappingHeaders);
 
-            overlappingLocalFileHeaders.push_back( LocalFileHeader::createBomb("kernel", bombSize));
+            overlappingLocalFileHeaders.push_back( LocalFileHeader::createBomb(uniqueNameGenerator.getFolderName()+"kernel", bombSize));
 
-            for (size_t i {0}; i < overLappingHeaders; ++i) {
+            // -1 cause kernal counts as one of the header
+            for (size_t i {0}; i < overLappingHeaders-1; ++i) {
                 overlappingLocalFileHeaders.push_back(LocalFileHeader::createNonFinalZip64(uniqueNameGenerator, overlappingLocalFileHeaders[i]));
 
             }
 
             zipFile.cdAddCapacity(overLappingHeaders);
 
-            for (size_t i {overlappingLocalFileHeaders.size()-1}; i > 0; --i) {
-                zipFile.addFile(overlappingLocalFileHeaders[i]);
+            for (auto& localFileHeader : overlappingLocalFileHeaders| std::views::reverse) {
+                zipFile.addFile(localFileHeader);
             }
         }
 

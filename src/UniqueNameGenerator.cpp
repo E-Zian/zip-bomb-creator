@@ -52,4 +52,8 @@ std::string UniqueNameGenerator::getName() {
 
 size_t UniqueNameGenerator::getSize() const {
     return 1 + getDecimalPlaces(maxNumberIterations_);
+}
+
+std::string UniqueNameGenerator::getFolderName() {
+    return folderName_;
 };
