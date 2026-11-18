@@ -40,3 +40,7 @@ void ZipFile::close() {
         std::cerr << e.what() << '\n';
     }
 }
+
+void ZipFile::cdAddCapacity(const size_t capacity) {
+    centralDirectories_.reserve(centralDirectories_.size() + capacity);
+}

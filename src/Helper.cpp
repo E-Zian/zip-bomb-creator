@@ -35,7 +35,7 @@ void helper::appendBytes64Small(std::vector<uint8_t> &buffer, const uint64_t dat
 
 
 void helper::displayBytes(const std::span<const uint8_t> buffer) {
-   for (size_t i{};i<buffer.size();i++) {
+   for (size_t i{};i<buffer.size();++i) {
        std::cout << std::hex << std::setw(2) << std::setfill('0')<<static_cast<int>(buffer[i]) << " ";
        if ((i + 1) % 16 == 0) std::cout << '\n';
    }

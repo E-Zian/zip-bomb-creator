@@ -11,7 +11,7 @@ class UniqueNameGenerator {
     static constexpr std::string_view ALPHABETS{"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
 public:
-    explicit UniqueNameGenerator(size_t maxVariations);
+    UniqueNameGenerator(size_t maxVariations,std::string&& folderName);
 
     std::string createName();
 
@@ -23,6 +23,8 @@ private:
     size_t maxVariations_{};
     size_t maxNumberIterations_{};
     size_t currentNumIteration_{};
-    uint8_t alphaIteration_{};
+    size_t alphaIteration_{};
+
+    std::string folderName_{};
 };
 #endif //ZIP_BOMB_CREATOR_NAMEGENERATOR_H

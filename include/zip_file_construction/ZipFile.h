@@ -27,11 +27,11 @@ class ZipFile {
 
     void close() ;
 
+    void cdAddCapacity(size_t capacity);
 
     private:
     std::string filename_;
 
-    std::vector<LocalFileHeader> localFileHeaders_;
     std::vector<CentralDirectoryHeader> centralDirectories_;
 
     uint64_t fileOffset_{};
