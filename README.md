@@ -91,7 +91,7 @@ approach this program implements, which reaches extreme ratios *without* recursi
 > Again the keyword here is **Modern**.
 
 > [!NOTE]
-> Users can also manually unzip the bombs for the `lolz`
+> The current implementation allows the user to hide the bomb in a targeted directory, so unsuspecting individuals might accidentally unzip it
 ## How to make a petabyte bomb
 The overlappingHeaders flag can be treated as a multiplier for the bomb size.
 Given that `1 PB` = `1,000 TB` and `1 TB` = `1,000 GB`, you can set the bomb 
