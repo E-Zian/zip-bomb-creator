@@ -10,7 +10,7 @@ void ZipFile::addFile(LocalFileHeader &fileHeader) {
     std::vector<uint8_t> fileNameVector{fileHeader.getFileName()};
     const std::string fileName{fileNameVector.begin(), fileNameVector.end()};
 
-    Timer singleFileWriteTimer{"Writing " + fileName + " to zip file"};
+    Timer singleFileWriteTimer{"Writing " + fileName + " to zip file",true};
 
     centralDirectories_.push_back(CentralDirectoryHeader::createBasic(fileHeader));
     centralDirectories_.back().setLocalHeaderOffset(fileOffset_);

@@ -60,6 +60,7 @@ zbc -help
 | `-tb`                 | number        | Sets the bomb size in TB. Default is 1 GB.                                                   |
 | `-overlapName`        | name          | Builds an overlapping bomb and sets its name. Default: `overlapBomb`.                        |
 | `-overlappingHeaders` | number        | Number of overlapping headers in the overlap bomb. Default: `1000`.                         |
+| `-detailed`           | —             | Displays all log messages in full detail. Reduces performance.                              |
 
 When no target is given, the bomb replaces a **random** file in the folder. Supplying either
 `-overlapName` or `-overlappingHeaders` switches the build to the overlapping-bomb mode and
@@ -104,7 +105,7 @@ The given example creates a zip file of sized ~100 MB which unzips to 1 PB, a be
 <img width="1002" height="52" alt="image" src="https://github.com/user-attachments/assets/aeb81238-5a9c-4127-a4a9-3b5fd321d6b2" />
 <img width="1123" height="935" alt="image" src="https://github.com/user-attachments/assets/5a22d2b1-6e59-4f5a-b20f-c54e2736ccf9" />
 
->This is 1000 overlapping headers for a single GB bomb size, which results in ~1000 KB unzip to a TB
+>This is 1000 overlapping headers for a single GB bomb size, which results in a ~1000 KB file unzipping to a TB
 >
 <img width="965" height="25" alt="image" src="https://github.com/user-attachments/assets/eb6e90ba-2676-4f8e-a3f2-74161751d256" />
 <img width="1097" height="740" alt="image" src="https://github.com/user-attachments/assets/e16f00e3-557e-412c-b0aa-05d87c1070cc" />

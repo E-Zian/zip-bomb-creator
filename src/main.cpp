@@ -49,10 +49,10 @@ int main(int argc, const char **argv) {
         "The directory of the folder to be zipped, if not provided the programme will zip the current working directory",
         true);
     inputParser.registerFlag("help", "Displays the available flags and their corresponding descriptions");
+    inputParser.registerFlag("detailed", "Displays all log messages, better performance if not used");
     inputParser.registerFlag("mb", "Sets the bomb size in mb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("gb", "Sets the bomb size in gb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("tb", "Sets the bomb size in tb followed by the size in number, default is 1gb", true);
-    // inputParser.registerFlag("pb", "Sets the bomb size in pb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("name", "Sets the name of the produced zipped file, default is zipBomb.zip", true);
     inputParser.registerFlag("target", "Sets the target file to be the bomb file", true);
     inputParser.registerFlag("overlapName","Sets the name of the overlapping bomb, default is overlapBomb",true);
@@ -69,10 +69,10 @@ int main(int argc, const char **argv) {
         auto inputMbSize{inputParser.getFlagValue("mb")};
         auto inputGbSize{inputParser.getFlagValue("gb")};
         auto inputTbSize{inputParser.getFlagValue("tb")};
-        // auto inputPbSize{inputParser.getFlagValue("pb")};
         auto inputTargetFile{inputParser.getFlagValue("target")};
         auto inputOverlapBombName{inputParser.getFlagValue("overlapName")};
         auto inputOverlappingHeaders{inputParser.getFlagValue("overlappingHeaders")};
+        if (auto    inputDetailed{inputParser.getFlagValue("detailed")})Timer::setDetailedMode();
 
         std::string folderPath{inputPath.has_value() ? inputPath.value() : fs::current_path().string()};
 
@@ -132,7 +132,7 @@ int main(int argc, const char **argv) {
                 };
                 zipFile.addFile(bombFile);
             } else {
-                Timer readFileTimer{"Compressing File - " + fileName};
+                Timer readFileTimer{"Compressing File - " + fileName,true};
                 std::vector<uint8_t> fileData{helper::readFile(entry.string())};
                 LocalFileHeader compressedFileHeader{lz77::fixedCompress(fileName, fileData)};
                 zipFile.addFile(compressedFileHeader);

@@ -11,8 +11,6 @@
 
 #include <span>
 
-
-
 namespace {
     void repeatInPlace(std::vector<uint8_t> &vector, const size_t n, const std::optional<size_t>targetSize=std::nullopt) {
         const size_t originalSize{vector.size()};
@@ -29,7 +27,7 @@ namespace {
             filledSize += originalSize;
         }
     }
-    //
+
     // size_t sumTo(const size_t firstValue, const size_t lastValue, const size_t totalInterval) {
     //     return (totalInterval* (firstValue+lastValue)/2);
     // }
@@ -72,12 +70,12 @@ size_t LocalFileHeader::serializeTo(std::ofstream &out) {
 
 
     if (!bombRecipe_.has_value()) {
-        Timer lfhWrite{"Writing lfh data"};
+        Timer lfhWrite{"Writing lfh data",true};
         writeFile(out, data_);
         size += data_.size();
     }
     else{
-        Timer lfhWrite{"Writing lfh bomb data"};
+        Timer lfhWrite{"Writing lfh bomb data",true};
 
         size += bombRecipe_->start.size();
         writeFile(out, bombRecipe_->start);

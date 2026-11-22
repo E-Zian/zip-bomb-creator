@@ -67,7 +67,7 @@ payloadFactory::CreateBombPayloadResult payloadFactory::createFixedBombPayload(c
 
     const size_t uncompressedSize{repeatedData + 1};
 
-    Timer CrcCalculation{"Crc32 calculation"};
+    Timer CrcCalculation{"Crc32 calculation",true};
 
     Crc32 BombCrc32{};
 
@@ -207,7 +207,7 @@ payloadFactory::CreateBombPayloadResult payloadFactory::createDynamicBombPayload
 
     const size_t uncompressedSize{repeatedData + 1};
 
-    Timer CrcCalculation{"Crc32 calculation"};
+    Timer CrcCalculation{"Crc32 calculation",true};
 
     Crc32 BombCrc32{};
 
