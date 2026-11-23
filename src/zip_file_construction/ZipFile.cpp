@@ -9,6 +9,7 @@
 
 ZipFile::~ZipFile() {
     if (!completed_) {
+        outStream_.exceptions(std::ios::goodbit);
         outStream_.close();
         std::error_code ec;
         std::filesystem::remove(filename_, ec);
@@ -44,6 +45,7 @@ void ZipFile::close() {
 
     eocd.setOffsetOfEocdRecord(fileOffset_);
     fileOffset_ += eocd.serializeTo(outStream_);
+    outStream_.close();
 
     completed_ = true;
 }
