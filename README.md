@@ -49,18 +49,18 @@ zbc -help
 > **Flags** are case-sensitive, all flag variables should be lower-cased.
 
 
-| Flag                  | Value         | Description                                                                                 |
-| --------------------- | ------------- | ------------------------------------------------------------------------------------------- |
-| `-help`               | —             | Displays the available flags and their descriptions.                                        |
-| `-dir`                | path          | Directory of the folder to be zipped. If omitted, the current working directory is zipped.  |
-| `-name`               | filename      | Name of the produced zip file. Default: `zipBomb.zip`.                                       |
-| `-target`             | relative path | Sets a specific file in the folder to be the bomb file (instead of a random one).           |
-| `-mb`                 | number        | Sets the bomb size in MB. Default is 1 GB.                                                   |
-| `-gb`                 | number        | Sets the bomb size in GB. Default is 1 GB.                                                   |
-| `-tb`                 | number        | Sets the bomb size in TB. Default is 1 GB.                                                   |
-| `-overlapName`        | name          | Builds an overlapping bomb and sets its name. Default: `overlapBomb`.                        |
-| `-overlappingHeaders` | number        | Number of overlapping headers in the overlap bomb. Default: `1000`.                         |
-| `-detailed`           | —             | Displays all log messages in full detail. Reduces performance.                              |
+| Flag                  | Value         | Description                                                                                                                                |
+|-----------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `-help`               | —             | Displays the available flags and their descriptions.                                                                                       |
+| `-dir`                | path          | Directory of the folder to be zipped. If omitted, the current working directory is zipped.                                                 |
+| `-name`               | filename      | Name of the produced zip file. Default: `zipBomb.zip`.                                                                                     |
+| `-target`             | relative path | Sets a specific file in the folder to be the bomb file (instead of a random one).                                                          |
+| `-mb`                 | number        | Sets the bomb size in MB. Default is 1 GB.                                                                                                 |
+| `-gb`                 | number        | Sets the bomb size in GB. Default is 1 GB.                                                                                                 |
+| `-tb`                 | number        | Sets the bomb size in TB. Default is 1 GB.                                                                                                 |
+| `-overlapName`        | name          | Builds an overlapping bomb and sets its name. Default: `overlapBomb`. Put a `*folderName*/` in front of the file name to postion the bomb. |
+| `-overlappingHeaders` | number        | Number of overlapping headers in the overlap bomb. Default: `1000`.                                                                        |
+| `-detailed`           | —             | Displays all log messages in full detail. Reduces performance.                                                                             |
 
 When no target is given, the bomb replaces a **random** file in the folder. Supplying either
 `-overlapName` or `-overlappingHeaders` switches the build to the overlapping-bomb mode and

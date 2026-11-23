@@ -55,7 +55,7 @@ int main(int argc, const char **argv) {
     inputParser.registerFlag("tb", "Sets the bomb size in tb followed by the size in number, default is 1gb", true);
     inputParser.registerFlag("name", "Sets the name of the produced zipped file, default is zipBomb.zip", true);
     inputParser.registerFlag("target", "Sets the target file to be the bomb file", true);
-    inputParser.registerFlag("overlapName","Sets the name of the overlapping bomb, default is overlapBomb",true);
+    inputParser.registerFlag("overlapName","Sets the name of the overlapping bomb, default is overlapBomb, put *folderName*/ in front of the file name to position the bomb",true);
     inputParser.registerFlag("overlappingHeaders","Sets how many overlapping headers of the overlap bomb should have, default is 1000",true);
 
     try {
@@ -116,7 +116,7 @@ int main(int argc, const char **argv) {
         if (auto size{parseBombSize(inputMbSize, ByteSizeBaseKB::MB)})bombSize = size.value();
         if (auto size{parseBombSize(inputGbSize, ByteSizeBaseKB::GB)})bombSize = size.value();
         if (auto size{parseBombSize(inputTbSize, ByteSizeBaseKB::TB)})bombSize = size.value();
-        // if (auto size{parseBombSize(inputPbSize, ByteSizeBaseKB::PB)})bombSize = size.value();
+
 
         bool hasOverlapBomb{inputOverlapBombName.has_value() || inputOverlappingHeaders.has_value()};
 
