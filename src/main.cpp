@@ -182,6 +182,7 @@ int main(int argc, const char **argv) {
         std::cout << "exception: " << e.what() << '\n' << std::endl;
 
         inputParser.displayHelp();
+
     }
 }
 ;

@@ -22,7 +22,11 @@ class ZipFile {
             std::cout << "Output file failed to open \n";
             throw std::runtime_error("Output file failed to open");
         }
+        outStream_.exceptions(std::ofstream::badbit | std::ofstream::failbit);
     };
+
+    ~ZipFile();
+
     void addFile(LocalFileHeader& fileHeader);
 
     void close() ;
@@ -36,6 +40,8 @@ class ZipFile {
 
     uint64_t fileOffset_{};
     std::ofstream outStream_;
+
+    bool completed_{false};
 
 };
 #endif //ZIP_BOMB_CREATOR_ZIPFILE_H
