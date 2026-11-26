@@ -39,7 +39,6 @@ namespace {
 
 
 int main(int argc, const char **argv) {
-    Timer totalRuntime{"Total Runtime"};
     namespace fs = std::filesystem;
 
     InputParser inputParser{};
@@ -63,6 +62,7 @@ int main(int argc, const char **argv) {
             inputParser.displayHelp();
             return 0;
         }
+        Timer totalRuntime{"Total Runtime"};
 
         auto inputName{inputParser.getFlagValue("name")};
         auto inputPath{inputParser.getFlagValue("dir")};

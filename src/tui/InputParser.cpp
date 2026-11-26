@@ -58,7 +58,7 @@ void InputParser::setFlagValue(const std::string &flagName, const std::string &f
 }
 
 void InputParser::displayHelp() const {
-    std::cout << "- Overview : Zips a folder and replaces a random file with a bomb file, if a target "
+    std::cout << "Overview : Zips a folder and replaces a random file with a bomb file, if a target "
             "is provided, the particular file would be set to the bomb file. In the "
             "case where an overlapping bomb flag is set, the existing zipped files "
             "would not be set as a possible bomb\n\n";
